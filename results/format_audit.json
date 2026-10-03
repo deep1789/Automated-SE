@@ -1,0 +1,72 @@
+{
+ "BigVul": {
+  "auroc": 0.9194406666666667,
+  "auprc_weighted": 0.6430737629419004,
+  "trailing_ws_lines": {
+   "vulnerable": 0.029705004766583443,
+   "benign": 0.0014192634262144566
+  },
+  "comment_markers": {
+   "vulnerable": 2.8919999599456787,
+   "benign": 0.7935000061988831
+  },
+  "starts_with_ws": {
+   "vulnerable": 0.24320000410079956,
+   "benign": 0.06469999998807907
+  },
+  "brace_own_line": {
+   "vulnerable": 0.41200000047683716,
+   "benign": 0.5943999886512756
+  }
+ },
+ "DiverseVul": {
+  "auroc": 0.7214583333333333,
+  "auprc_weighted": 0.14509208782668315,
+  "trailing_ws_lines": {
+   "vulnerable": 0.004737167153507471,
+   "benign": 0.0024147399235516787
+  },
+  "comment_markers": {
+   "vulnerable": 5.25439977645874,
+   "benign": 1.7657999992370605
+  },
+  "starts_with_ws": {
+   "vulnerable": 0.0421999990940094,
+   "benign": 0.07909999787807465
+  },
+  "brace_own_line": {
+   "vulnerable": 0.8133999705314636,
+   "benign": 0.7878999710083008
+  }
+ },
+ "main_lgbm_check": {
+  "BigVul": {
+   "all": {
+    "auroc": 0.8204729809725803,
+    "auprc": 0.33884059205918843
+   },
+   "drop_chars_lines": {
+    "auroc": 0.81770986753621,
+    "auprc": 0.3341955853514453
+   },
+   "drop_chars_lines_tokens": {
+    "auroc": 0.8176066791482234,
+    "auprc": 0.3354099342135822
+   }
+  },
+  "DiverseVul": {
+   "all": {
+    "auroc": 0.8007563803093896,
+    "auprc": 0.22041802563055574
+   },
+   "drop_chars_lines": {
+    "auroc": 0.7989908523001377,
+    "auprc": 0.2176183792820212
+   },
+   "drop_chars_lines_tokens": {
+    "auroc": 0.8020756308126002,
+    "auprc": 0.22224793820085387
+   }
+  }
+ }
+}

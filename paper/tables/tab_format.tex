@@ -1,0 +1,12 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Formatting-shortcut audit on the stratified subsample (random 70/30 split). First two columns: LightGBM on 15 formatting features of the raw text only (indentation, trailing whitespace, comment markers, line lengths; AUPRC weighted to true prevalence). Next three: mean per function, vulnerable / benign. Last: AUROC of the main-study LightGBM with all metrics / with size-sensitive metrics (chars, lines, tokens) removed (seed 0).}\label{tab:format}
+\resizebox{\linewidth}{!}{\begin{tabular}{lcccccc}
+\toprule
+Dataset & AUROC & AUPRC & Trailing-ws lines (\%) & Starts with ws (\%) & Comment markers & Main LGBM AUROC \\
+\midrule
+Big-Vul & 0.919 & 0.643 & 3.0 / 0.1 & 24.3 / 6.5 & 2.9 / 0.8 & 0.820 / 0.818 \\
+DiverseVul & 0.721 & 0.145 & 0.5 / 0.2 & 4.2 / 7.9 & 5.3 / 1.8 & 0.801 / 0.802 \\
+\bottomrule
+\end{tabular}}
+\end{table}

@@ -9,3 +9,5 @@ huggingface_hub
 pyarrow
 joblib
 flawfinder
+torch
+transformers

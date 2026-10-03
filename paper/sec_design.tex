@@ -7,6 +7,7 @@
 \item[RQ3 (Guarantees under shift).] Does the conformal clearance rule keep its miss-rate budget when calibrated on source data, and which remedies (covariate-shift weighting, labelled target recalibration, the PAC variant) restore it? How many labelled target positives are needed?
 \item[RQ4 (Accountability).] Is the guarantee distributed evenly across function sizes and vulnerability classes (CWEs), and does Mondrian calibration repair imbalances? How consistent are the triage decisions and the explanations under semantics-preserving rewrites and across datasets?
 \item[RQ5 (Operational value).] How much reviewer effort does risk-controlled triage save at a valid miss budget, how does it compare with a rule-based static analyser, and what does it imply under an explicit cost model?
+\item[RQ6 (Pre-trained code model).] Do the conclusions hold for a scorer built on a pre-trained code model (CodeBERT), and do such models exploit dataset artifacts that lexical models cannot see?
 \end{description}
 
 \subsection{Datasets and data-quality audit}
@@ -35,7 +36,7 @@ Each scenario is repeated with three seeds (different partitions and model initi
 \input{tables/tab_scen}
 
 \subsection{Detectors}
-Because the experiments must be fully reproducible on commodity CPUs and over 20 scenario--seed pairs, we use four lightweight, widely used detectors rather than fine-tuned pre-trained code models; this choice is a limitation we discuss in Section~\ref{sec:threats}, and the triage layer is detector-agnostic.
+Because the experiments must be fully reproducible on commodity CPUs and over 20 scenario--seed pairs, we use four lightweight, widely used detectors on the full corpora, complemented by a frozen-CodeBERT experiment on a subsample (Section~\ref{sec:design_cb}); the absence of fine-tuned code models is a limitation discussed in Section~\ref{sec:threats}, and the triage layer is detector-agnostic.
 \begin{itemize}[itemsep=1pt]
 \item \textbf{TF-IDF LR} and \textbf{TF-IDF SVM}: unigram+bigram code tokens hashed to $2^{19}$ features, sublinear TF-IDF, logistic regression ($C{=}20$) or linear SVM ($C{=}0.3$).
 \item \textbf{LightGBM}~\cite{ke2017lightgbm}: gradient-boosted trees on 71 engineered code metrics (size, nesting depth, cyclomatic proxy, pointer/cast/bit-operation counts, counts of 32 security-relevant API calls) plus the 20\,000 most frequent hashed tokens; early stopping on 10\% of the training data.
@@ -43,6 +44,10 @@ Because the experiments must be fully reproducible on commodity CPUs and over 20
 \end{itemize}
 Training sets keep all vulnerable functions and at most 150\,000 benign ones; this does not affect the triage layer, which depends on score ranks only.
 The rule-based baseline is \textbf{Flawfinder} 2.0.20, with the highest risk level among a function's hits (then the number of hits) as score.
+
+\subsection{Pre-trained code model experiment (RQ6)}\label{sec:design_cb}
+To test whether the findings depend on the lightweight detectors, we add scorers built on CodeBERT~\cite{feng2020codebert} (\texttt{microsoft/codebert-base}). Because the study ran without a GPU, the encoder is \emph{frozen}: we embed the first 256 tokens of each function and use the concatenation of the [CLS] vector and the mean-pooled last layer (1\,536 dimensions) as features of a standardised logistic regression ($C{=}0.05$) and of a LightGBM (embedding plus the 71 code metrics); their standardised sum is the ``CodeBERT ensemble''. Embedding the full corpora (487\,000 functions) is infeasible on CPU, so we use a stratified subsample of each corpus with all scenarios, splits and seeds unchanged: 5\,000 vulnerable and 10\,000 benign functions per dataset (30\,000 in total; the benign functions are a uniform sample, so positive-class quantities such as the miss rate are unaffected, while AUPRC and SAR are weighted back to the true prevalence). All scorers in this experiment, including the TF-IDF models, are retrained on the subsample so that comparisons are matched.
+Two input variants are evaluated: \emph{raw text}, and \emph{normalised text} (comments removed, whitespace collapsed), the same normalisation used in the main study. A \emph{formatting-only} LightGBM on 15 formatting statistics of the raw text (indentation, trailing whitespace, comment markers, line lengths) serves as a shortcut probe. For cross-dataset scenarios this experiment is stricter than the main study: any target function that occurs anywhere in the full source corpus is removed.
 
 \subsection{Metrics}
 \textbf{Detection:} AUROC, AUPRC, and F1, MCC, precision, recall at the F1-optimal threshold chosen on ID calibration data.

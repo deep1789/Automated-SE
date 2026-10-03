@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Detection with frozen CodeBERT embeddings on the stratified subsample (mean over 3 seeds; AUPRC weighted to the true prevalence). Fmt: formatting-only classifier; CB raw / norm: CodeBERT on raw text / on comment-and-whitespace-normalised text; ensembles are standardised score sums.}\label{tab:cbdetect}
+\resizebox{\linewidth}{!}{\begin{tabular}{lcccccccccc}
+\toprule
+Scenario & AUROC Fmt & AUROC TF-IDF & AUROC CB raw & AUROC CB norm & AUROC TF+CB & AUPRC Fmt & AUPRC TF-IDF & AUPRC CB raw & AUPRC CB norm & AUPRC TF+CB \\
+\midrule
+DV random & 0.730 & 0.790 & 0.745 & 0.753 & 0.784 & 0.143 & 0.208 & 0.168 & 0.167 & 0.203 \\
+BV random & 0.924 & 0.825 & 0.893 & 0.774 & 0.816 & 0.651 & 0.251 & 0.445 & 0.180 & 0.240 \\
+DV project & 0.690 & 0.708 & 0.698 & 0.702 & 0.715 & 0.122 & 0.137 & 0.122 & 0.135 & 0.147 \\
+BV project & 0.895 & 0.709 & 0.828 & 0.706 & 0.719 & 0.588 & 0.142 & 0.312 & 0.142 & 0.152 \\
+BV temporal & 0.909 & 0.728 & 0.844 & 0.721 & 0.737 & 0.647 & 0.115 & 0.291 & 0.121 & 0.123 \\
+DV$\to$BV & 0.720 & 0.701 & 0.688 & 0.689 & 0.703 & 0.193 & 0.148 & 0.126 & 0.139 & 0.154 \\
+BV$\to$DV & 0.627 & 0.712 & 0.674 & 0.709 & 0.721 & 0.101 & 0.147 & 0.113 & 0.140 & 0.153 \\
+\bottomrule
+\end{tabular}}
+\end{table}
