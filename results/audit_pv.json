@@ -1,0 +1,17 @@
+{
+  "raw": 223335,
+  "exact_dup_rows_removed": 725,
+  "label_conflict_hashes": 52,
+  "label_conflict_rows": 104,
+  "clean": 222558,
+  "vuln": 5648,
+  "vuln_rate": 0.02537765436425561,
+  "projects": 753,
+  "rows_after_len_filter": 223335,
+  "shared_with_DiverseVul": 171951,
+  "shared_frac_of_PrimeVul_DiverseVul": 0.7726120831423718,
+  "shared_vuln_in_PrimeVul_DiverseVul": 4606,
+  "shared_with_BigVul": 79323,
+  "shared_frac_of_PrimeVul_BigVul": 0.35641495699997305,
+  "shared_vuln_in_PrimeVul_BigVul": 1797
+}

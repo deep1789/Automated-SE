@@ -8,18 +8,20 @@
 \item[RQ4 (Accountability).] Is the guarantee distributed evenly across function sizes and vulnerability classes (CWEs), and does Mondrian calibration repair imbalances? How consistent are the triage decisions and the explanations under semantics-preserving rewrites and across datasets?
 \item[RQ5 (Operational value).] How much reviewer effort does risk-controlled triage save at a valid miss budget, how does it compare with a rule-based static analyser, and what does it imply under an explicit cost model?
 \item[RQ6 (Pre-trained code model).] Do the conclusions hold for a scorer built on a pre-trained code model (CodeBERT), and do such models exploit dataset artifacts that lexical models cannot see?
+\item[RQ7 (Drift).] Can online calibration (adaptive conformal inference, sliding-window recalibration) keep the miss budget along a stream whose distribution moves, using only delayed outcome feedback, and at what cost in automation?
+\item[RQ8 (Third corpus).] Do the central findings (validity on exchangeable splits, violation under shift, effect of the remedies) replicate on PrimeVul, a harder and differently constructed benchmark, and does PrimeVul share the shortcut found in Big-Vul?
 \end{description}
 
 \subsection{Datasets and data-quality audit}
-We use two public C/C++ function-level vulnerability datasets that differ in provenance.
+We use three public C/C++ function-level vulnerability datasets that differ in provenance.
 \textbf{DiverseVul}~\cite{chen2023diversevul} contains functions collected from security-issue websites and the commits that fix them; each record carries the project, the fixing commit and (where available) the CWE.
 \textbf{Big-Vul}~\cite{fan2020bigvul} links CVE records to fixing commits; we use the pre-fix function body as the vulnerable sample, the unchanged functions from the same commits as benign samples, and take the publication year from the CVE identifier as a temporal key.
-Both were obtained from the Hugging Face hub (\texttt{claudios/DiverseVul}, \texttt{bstee615/bigvul}).
-We deliberately did not use the Juliet test suite, whose synthetic flaws make random-split results saturate, nor PrimeVul, which was not retrievable in our environment.
+\textbf{PrimeVul}~\cite{ding2024primevul} is a de-duplicated benchmark built on earlier corpora in which many vulnerable functions are paired with their patched versions; it carries the project, the commit and the CVE, from which we take the year. The first two were obtained from the Hugging Face hub (\texttt{claudios/DiverseVul}, \texttt{bstee615/bigvul}) and are the corpora of the main study (Sections~\ref{sec:rq1}--\ref{sec:rq7}); PrimeVul (\texttt{colin/PrimeVul}, train, validation and test files pooled) is used as a third corpus to replicate the central findings (Section~\ref{sec:rq8}).
+We deliberately did not use the Juliet test suite, whose synthetic flaws make random-split results saturate.
 
 \paragraph{Pre-processing and audit}
 For each function we strip comments, collapse whitespace and hash the result. Within a dataset we remove exact duplicates, and we drop every hash that occurs with conflicting labels. Across datasets we compute the overlap of normalised hashes.
-Table~\ref{tab:data} reports the audit; the consequences for evaluation are discussed in Section~\ref{sec:rq1}.
+Table~\ref{tab:data} reports the audit of the two main corpora and Table~\ref{tab:data3} adds PrimeVul and all pairwise overlaps; the consequences for evaluation are discussed in Sections~\ref{sec:rq1} and~\ref{sec:rq8}.
 
 \input{tables/tab_data}
 
@@ -48,6 +50,12 @@ The rule-based baseline is \textbf{Flawfinder} 2.0.20, with the highest risk lev
 \subsection{Pre-trained code model experiment (RQ6)}\label{sec:design_cb}
 To test whether the findings depend on the lightweight detectors, we add scorers built on CodeBERT~\cite{feng2020codebert} (\texttt{microsoft/codebert-base}). Because the study ran without a GPU, the encoder is \emph{frozen}: we embed the first 256 tokens of each function and use the concatenation of the [CLS] vector and the mean-pooled last layer (1\,536 dimensions) as features of a standardised logistic regression ($C{=}0.05$) and of a LightGBM (embedding plus the 71 code metrics); their standardised sum is the ``CodeBERT ensemble''. Embedding the full corpora (487\,000 functions) is infeasible on CPU, so we use a stratified subsample of each corpus with all scenarios, splits and seeds unchanged: 5\,000 vulnerable and 10\,000 benign functions per dataset (30\,000 in total; the benign functions are a uniform sample, so positive-class quantities such as the miss rate are unaffected, while AUPRC and SAR are weighted back to the true prevalence). All scorers in this experiment, including the TF-IDF models, are retrained on the subsample so that comparisons are matched.
 Two input variants are evaluated: \emph{raw text}, and \emph{normalised text} (comments removed, whitespace collapsed), the same normalisation used in the main study. A \emph{formatting-only} LightGBM on 15 formatting statistics of the raw text (indentation, trailing whitespace, comment markers, line lengths) serves as a shortcut probe. For cross-dataset scenarios this experiment is stricter than the main study: any target function that occurs anywhere in the full source corpus is removed.
+
+\subsection{Online experiment (RQ7)}\label{sec:design_online}
+The online experiment replays the test sets of the main study as streams, in batches of $1\,000$ functions with labels revealed after each batch. Arrival order is: CVE identifier (year, then sequence number) for Big-Vul temporal; projects one after another in random order for the project scenarios (each project switch is an abrupt shift); random order for the cross-dataset scenarios (a single shift at the start) and for the random scenarios (no shift; a check that adaptation does no harm). Four policies are compared at $\alpha\in\{5\%,10\%\}$: \emph{static} (threshold fixed from source calibration), \emph{sliding window} (recalibrated on the last $W{=}200$ observed vulnerable functions once 50 are available, source calibration before that), \emph{ACI} (Eq.~\eqref{eq:aci} with $\gamma\in\{0.005,0.01,0.02,0.05\}$ on the source calibration scores) and \emph{ACI+window}. We report the overall miss rate of the stream, the worst miss rate over any window of $300$ vulnerable functions and the share of functions cleared; the LR+LGBM scorer of the main study is used.
+
+\subsection{Third corpus (RQ8)}\label{sec:design_pv}
+On PrimeVul we repeat the seven-scenario design with the same detectors, seeds and metrics: random (PV-R), project-disjoint (PV-P), temporal (PV-T: train and ID calibration on CVEs up to 2018, target pool 2019, test 2020--2022) and four cross-dataset scenarios (DV$\to$PV, BV$\to$PV, PV$\to$DV, PV$\to$BV) from which target functions occurring in the training corpus are removed. Because PrimeVul was derived from earlier corpora, the removal matters: $77\%$ of its functions occur in DiverseVul (Table~\ref{tab:data3}). The shortcut probe of Section~\ref{sec:design_cb} is applied to the raw text of all three corpora, and its feature groups (whitespace structure, size, comment markers) are ablated.
 
 \subsection{Metrics}
 \textbf{Detection:} AUROC, AUPRC, and F1, MCC, precision, recall at the F1-optimal threshold chosen on ID calibration data.

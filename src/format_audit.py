@@ -16,7 +16,7 @@ for ds in ("BigVul", "DiverseVul"):
     out[ds] = d
 # does the main LightGBM depend on size/format-sensitive metrics?
 chk = {}
-for ds, sc in (("BigVul", "BV-R"), ("DiverseVul", "DV-R")):
+for ds, sc in (("BigVul", "BV-R"), ("DiverseVul", "DV-R"), ("PrimeVul", "PV-R")):
     X, M, meta = load(ds); seed = 0; parts = make_split(sc, seed, meta, meta); tr = cap_train(parts["train"][1], meta.y.values, seed); te = parts["test"][1]
     keep = np.argsort(-np.asarray((X[tr] > 0).sum(0)).ravel())[:20000]; res = {}
     for label, cols in (("all", []), ("drop_chars_lines", [0, 1]), ("drop_chars_lines_tokens", [0, 1, 2])):

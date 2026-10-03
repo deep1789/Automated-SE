@@ -101,6 +101,24 @@ restores validity when computed on the calibration \emph{positives}. We estimate
 \paragraph{Recalibration on a small labelled target sample}
 If $k$ labelled vulnerable functions from the \emph{target} distribution (the new project, or the most recent release window) are available, calibrating on them restores exchangeability by construction, and Proposition~\ref{prop:valid} applies verbatim with $n=k$. The price is variance: by Corollary~\ref{cor:beta}, the realised miss rate has standard deviation $\approx\sqrt{\alpha(1-\alpha)/k}$, and the PAC variant (Proposition~\ref{prop:pac}) trades part of the clearance rate for a bounded violation probability.
 
+\subsection{Online risk control under drift}\label{sec:online}
+Recalibration on a labelled target sample (Section above) is a one-off remedy. In deployment the distribution keeps moving (new releases, new projects) and labels arrive over time: a vulnerable function that was cleared may be discovered later (an incident, a disclosure, an audit of the cleared pool). We therefore also consider a stream of functions processed in batches $b=1,2,\dots$ with \emph{delayed feedback}: the labels of batch $b$ become known after the batch has been decided.
+
+Adaptive conformal inference (ACI)~\cite{gibbs2021adaptive} turns the miss budget into a control variable. Let $\alpha_1=\alpha$ and, for batch $b$, clear iff $s<s^{\mathrm{ref}}_{(k_b)}$ with $k_b=\lfloor\alpha_b(n+1)\rfloor$ computed on a reference set of $n$ vulnerable scores (the source calibration positives, or the most recent $W$ observed vulnerable functions); the rule clears nothing if $\alpha_b\le0$ and everything if $\alpha_b\ge1$. After the batch, for each vulnerable function $i$ of the batch in turn, with $e_i=1$ if it was cleared and $0$ otherwise,
+\begin{equation}
+  \alpha\leftarrow\alpha+\gamma\,(\alpha_{\mathrm{target}}-e_i).\label{eq:aci}
+\end{equation}
+\begin{proposition}[Online miss-rate control with delayed feedback]\label{prop:online}
+Let $b_{\max}$ be the largest number of vulnerable functions in a batch and $N$ the total number of vulnerable functions in the stream. For \emph{any} sequence of scores and labels (no exchangeability, no assumption on the shift),
+\[
+\Bigl|\frac1N\sum_{i=1}^N e_i-\alpha\Bigr|\ <\ \frac{1+\gamma\,b_{\max}}{\gamma\,N}.
+\]
+\end{proposition}
+\begin{proof}
+Summing~\eqref{eq:aci} over all vulnerable functions gives $\sum_i(\alpha-e_i)=(\alpha_{\mathrm{end}}-\alpha_1)/\gamma$, so it suffices to bound the final level. Consider the level $a$ at the start of a batch. If $a\le0$ nothing is cleared, every $e_i=0$ and the level can only increase within the batch. If $a>0$ it decreases by at most $\gamma(1-\alpha)$ per vulnerable function, hence stays above $-\gamma b_{\max}(1-\alpha)$; by induction over batches the level never falls below this value. Symmetrically, if $a\ge1$ everything is cleared, every $e_i=1$ and the level can only decrease, while if $a<1$ it increases by at most $\gamma\alpha$ per vulnerable function, so the level stays below $1+\gamma b_{\max}\alpha$. Hence $-\gamma b_{\max}(1-\alpha)-\alpha<\alpha_{\mathrm{end}}-\alpha_1<1+\gamma b_{\max}\alpha-\alpha$, and $\lvert\alpha_{\mathrm{end}}-\alpha_1\rvert<1+\gamma b_{\max}$.
+\end{proof}
+Proposition~\ref{prop:online} is a guarantee on the \emph{long-run average} miss rate of the whole stream, deterministic in the data; it says nothing about the miss rate in a given window, which is why we also report the worst window. Its price is automation: if the scorer degrades, the level $\alpha_b$ falls and fewer functions are cleared. It requires feedback on every vulnerable function, including the cleared ones; with feedback on a random fraction $q$ of the cleared functions, $e_i/q$ is an unbiased replacement (not evaluated here). The proof does not depend on the reference set, so the bound also holds when the reference is a sliding window of observed vulnerable scores (``ACI+window'').
+
 \subsection{Group-conditional validity (Mondrian calibration)}
 The marginal guarantee averages over all vulnerable functions and can hide very uneven risk across inputs that are observable at inference time.
 Partition the input space by a function $b(x)$ (we use function-length terciles).
@@ -146,6 +164,6 @@ Algorithm~\ref{alg:triage} summarises calibration and deployment. The calibratio
 \For{each new function $x$}
   \State \textbf{if} $s(x)<\hat\tau$ \textbf{then} auto-clear \textbf{else} send to review (or auto-flag if $s(x)\ge\hat\lambda$)
 \EndFor
-\State Monitor: on every batch of newly labelled outcomes, re-estimate the miss rate and re-calibrate when it exceeds $\alpha$
+\State Monitor: on every batch of newly labelled outcomes, update the level with Eq.~\eqref{eq:aci} (ACI) or recalibrate on the most recent observed vulnerable functions
 \end{algorithmic}
 \end{algorithm}

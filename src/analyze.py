@@ -11,6 +11,8 @@ R = 200
 NCAL = 300
 rng = np.random.RandomState(7)
 
+import os
+SCEN_ENV = os.environ.get('AN_SCEN'); OUT_PFX = os.environ.get('AN_OUT', 'results/')
 def load_parts(sc, seed):
     P = {}
     for f in glob.glob(f"results/cache/{sc}_s{seed}_*.parquet"):
@@ -59,6 +61,7 @@ def stats_for_thr(th, s_sorted_pos, s_sorted_all):
 def run(models=("lr", "svm", "lgbm", "ens")):
     det, cal_rows, tri, flag, buck, cwes, cost = [], [], [], [], [], [], []
     scen = sorted({f.split("/")[-1].split("_s")[0] for f in glob.glob("results/cache/*_cal_id.parquet")})
+    scen = [s for s in scen if (s in SCEN_ENV.split(",") if SCEN_ENV else s in ("BV-R","BV-P","BV-T","DV-R","DV-P","DV2BV","BV2DV"))]
     for sc in scen:
         for seed in range(3):
             P = load_parts(sc, seed)
@@ -159,13 +162,13 @@ def run(models=("lr", "svm", "lgbm", "ens")):
                         if pos.sum() >= 15:
                             cwes.append(dict(scenario=sc, seed=seed, model=m, cwe=c, npos=int(pos.sum()), miss=float(pm[g.index.values][pos].mean())))
             print(sc, seed, flush=True)
-    pd.DataFrame(det).to_csv("results/detection.csv", index=False)
-    pd.DataFrame(cal_rows).to_csv("results/calibration.csv", index=False)
-    pd.DataFrame(tri).to_csv("results/triage.csv", index=False)
-    pd.DataFrame(flag).to_csv("results/flag.csv", index=False)
-    pd.DataFrame(buck).to_csv("results/bucket.csv", index=False)
-    pd.DataFrame(cwes).to_csv("results/cwe.csv", index=False)
-    pd.DataFrame(cost).to_csv("results/cost.csv", index=False)
+    pd.DataFrame(det).to_csv(OUT_PFX + "detection.csv", index=False)
+    pd.DataFrame(cal_rows).to_csv(OUT_PFX + "calibration.csv", index=False)
+    pd.DataFrame(tri).to_csv(OUT_PFX + "triage.csv", index=False)
+    pd.DataFrame(flag).to_csv(OUT_PFX + "flag.csv", index=False)
+    pd.DataFrame(buck).to_csv(OUT_PFX + "bucket.csv", index=False)
+    pd.DataFrame(cwes).to_csv(OUT_PFX + "cwe.csv", index=False)
+    pd.DataFrame(cost).to_csv(OUT_PFX + "cost.csv", index=False)
 
 if __name__ == "__main__":
     run()

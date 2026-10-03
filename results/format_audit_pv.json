@@ -1,0 +1,20 @@
+{
+ "auroc": 0.8827344805478767,
+ "auprc_weighted": 0.2362674737974639,
+ "trailing_ws_lines": {
+  "vulnerable": 0.013712604530155659,
+  "benign": 0.002515793312340975
+ },
+ "comment_markers": {
+  "vulnerable": 9.093104362487793,
+  "benign": 1.9107667207717896
+ },
+ "starts_with_ws": {
+  "vulnerable": 0.10043304413557053,
+  "benign": 0.07543333619832993
+ },
+ "brace_own_line": {
+  "vulnerable": 0.7376748919487,
+  "benign": 0.7566333413124084
+ }
+}

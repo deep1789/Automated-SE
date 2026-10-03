@@ -1,0 +1,29 @@
+{
+ "BigVul": {
+  "all": 0.9194406666666667,
+  "only size (chars, lines, mean line length)": 0.6869321111111111,
+  "all except size (chars, lines, mean line length)": 0.8997114444444445,
+  "only comment markers": 0.5875324444444445,
+  "all except comment markers": 0.9200444444444444,
+  "only whitespace structure": 0.8918508888888889,
+  "all except whitespace structure": 0.6881837777777778
+ },
+ "DiverseVul": {
+  "all": 0.7214583333333333,
+  "only size (chars, lines, mean line length)": 0.7192500000000001,
+  "all except size (chars, lines, mean line length)": 0.7018903333333333,
+  "only comment markers": 0.6578827777777779,
+  "all except comment markers": 0.7234127777777777,
+  "only whitespace structure": 0.6816418888888889,
+  "all except whitespace structure": 0.7178586666666668
+ },
+ "PrimeVul": {
+  "all": 0.8827344805478767,
+  "only size (chars, lines, mean line length)": 0.8051906565258559,
+  "all except size (chars, lines, mean line length)": 0.8583228860807063,
+  "only comment markers": 0.7157160216820873,
+  "all except comment markers": 0.8827694880715641,
+  "only whitespace structure": 0.8406963974204607,
+  "all except whitespace structure": 0.8060979836838413
+ }
+}

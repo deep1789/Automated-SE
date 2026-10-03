@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Replication on PrimeVul (LR+LGBM scorer, mean over 3 seeds; \%, except AUROC/AUPRC). ID: source-calibrated clearance at $\alpha{=}10\%$; Wtd: covariate-shift weighted; $k{=}100$: calibrated on 100 labelled target positives; PAC: high-probability variant with its violation frequency. Cross-dataset scenarios exclude target functions that occur in the training corpus.}\label{tab:pv}
+\resizebox{\linewidth}{!}{\begin{tabular}{lccccccccc}
+\toprule
+Scenario & AUROC & AUPRC & ID miss & ID SAR & Wtd miss & $k{=}100$ miss & $k{=}100$ SAR & PAC SAR & PAC viol. \\
+\midrule
+PV random & 0.840 & 0.139 & 10.7 & 57.6 & -- & -- & -- & -- & -- \\
+PV project & 0.797 & 0.111 & 19.0 & 62.2 & 12.1 & 10.7 & 46.3 & 35.1 & 4.5 \\
+PV temporal & 0.819 & 0.114 & 11.8 & 55.5 & 10.7 & 8.7 & 48.6 & 36.1 & 0.0 \\
+DV$\to$PV & 0.826 & 0.123 & 13.2 & 58.5 & 10.6 & 9.7 & 50.8 & 39.1 & 1.7 \\
+BV$\to$PV & 0.778 & 0.096 & 14.0 & 50.2 & 14.1 & 9.6 & 40.3 & 29.7 & 0.7 \\
+PV$\to$DV & 0.735 & 0.199 & 23.9 & 55.2 & 23.1 & 10.0 & 31.5 & 22.4 & 2.0 \\
+PV$\to$BV & 0.715 & 0.190 & 36.1 & 65.9 & 19.5 & 9.3 & 25.9 & 17.8 & 1.2 \\
+\bottomrule
+\end{tabular}}
+\end{table}

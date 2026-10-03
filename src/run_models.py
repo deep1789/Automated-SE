@@ -12,7 +12,11 @@ SC = {  # name -> (source, target, split kind)
     "BV-R": ("BigVul", "BigVul", "random"), "BV-P": ("BigVul", "BigVul", "project"),
     "BV-T": ("BigVul", "BigVul", "temporal"),
     "DV2BV": ("DiverseVul", "BigVul", "cross"), "BV2DV": ("BigVul", "DiverseVul", "cross"),
+    # third corpus (PrimeVul)
+    "PV-R": ("PrimeVul", "PrimeVul", "random"), "PV-P": ("PrimeVul", "PrimeVul", "project"), "PV-T": ("PrimeVul", "PrimeVul", "temporal"),
+    "DV2PV": ("DiverseVul", "PrimeVul", "cross"), "BV2PV": ("BigVul", "PrimeVul", "cross"), "PV2DV": ("PrimeVul", "DiverseVul", "cross"), "PV2BV": ("PrimeVul", "BigVul", "cross"),
 }
+TEMPORAL = {"BigVul": (2015, 2016, 2017), "PrimeVul": (2018, 2019, 2020)}   # train <= a; target pool == b; test >= c (by CVE year)
 MAXNEG = 150_000
 
 def load(ds):
@@ -35,8 +39,9 @@ def make_split(name, seed, metaS, metaT):
         parts = dict(train=("S", tr), cal_id=("S", cal), cal_tgt=("S", pool), test=("S", te))
     elif kind == "temporal":
         yr = metaS.year.astype(float).values
-        tr = np.where(yr <= 2015)[0]; r = rng.rand(len(tr)); cal = tr[r < .15]; tr = tr[r >= .15]
-        parts = dict(train=("S", tr), cal_id=("S", cal), cal_tgt=("S", np.where(yr == 2016)[0]), test=("S", np.where(yr >= 2017)[0]))
+        a_, b_, c_ = TEMPORAL[SC[name][0]]
+        tr = np.where(yr <= a_)[0]; r = rng.rand(len(tr)); cal = tr[r < .15]; tr = tr[r >= .15]
+        parts = dict(train=("S", tr), cal_id=("S", cal), cal_tgt=("S", np.where(yr == b_)[0]), test=("S", np.where(yr >= c_)[0]))
     elif kind == "cross":
         r = rng.rand(len(metaS)); tr = np.where(r < .85)[0]; cal = np.where(r >= .85)[0]
         trh = set(metaS.nh.values[tr])
