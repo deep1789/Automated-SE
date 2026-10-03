@@ -24,6 +24,15 @@ The script reproduces exactly the same 30 000-function subsample, scenarios, see
    ```
    The paper then needs the new numbers written into Section 5.6 (RQ6) and the "frozen" caveats in Sections 1, 4 and 7 updated.
 
+## Getting the results back through git (instead of a zip)
+Cell **6b** of the notebook pushes `*.parquet` and `*_done.json` to the branch `colab-results` (folder `colab_results/`) of your repository using a fine-grained token kept in *Colab Secrets* (`GITHUB_TOKEN`, repository-scoped, Contents read/write, short expiry). Then, in the repository:
+```
+git fetch origin colab-results
+git checkout origin/colab-results -- colab_results
+python src/merge_ft.py colab_results
+```
+Revoke the token when you are done.
+
 ## What is trained
 * Input: **normalised text** (comments removed, whitespace collapsed), first 256 tokens (`--max-len`). Do not use raw text: Big-Vul's formatting artifact (paper, Table "Formatting audit") would be learned.
 * Model: `RobertaForSequenceClassification` (2 classes), AdamW, lr 2e-5, weight decay 0.01, batch 16, 3 epochs, 10 % linear warm-up then linear decay, gradient clipping 1.0, mixed precision (bf16 if supported, else fp16).
