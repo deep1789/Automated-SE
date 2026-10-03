@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Flawfinder (FF) versus the learned scorer (LR+LGBM rank average) on identical test functions (seed 0). The only conservative FF policy is to clear functions without any hit; its SAR and miss rate (\%) are compared with the learned scorer's miss rate at the same SAR and its SAR at the same miss rate.}\label{tab:flaw}
+\resizebox{\linewidth}{!}{\begin{tabular}{lcccccccc}
+\toprule
+Scenario & AUROC FF & AUROC ML & AUPRC FF & AUPRC ML & FF SAR & FF miss & ML miss @SAR & ML SAR @miss \\
+\midrule
+DV random & 0.570 & 0.830 & 0.075 & 0.230 & 88.3 & 76.4 & 49.6 & 95.4 \\
+BV random & 0.548 & 0.851 & 0.065 & 0.380 & 92.7 & 84.4 & 54.4 & 98.8 \\
+DV project & 0.568 & 0.709 & 0.070 & 0.126 & 90.6 & 79.7 & 71.8 & 94.3 \\
+BV project & 0.611 & 0.700 & 0.101 & 0.141 & 82.5 & 62.9 & 58.9 & 84.7 \\
+BV temporal & 0.555 & 0.726 & 0.058 & 0.110 & 91.4 & 81.3 & 73.3 & 94.7 \\
+DV$\to$BV & 0.535 & 0.697 & 0.066 & 0.163 & 95.3 & 89.8 & 81.3 & 98.4 \\
+BV$\to$DV & 0.570 & 0.707 & 0.079 & 0.141 & 88.3 & 77.2 & 68.1 & 92.7 \\
+\bottomrule
+\end{tabular}}
+\end{table}

@@ -1,0 +1,41 @@
+\documentclass[preprint,12pt,authoryear]{elsarticle}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,graphicx,enumitem,xcolor,multirow,array}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,calc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\def\sectionautorefname{Section}
+\journal{Journal of Systems and Software}
+
+\begin{document}
+\begin{frontmatter}
+\title{Abstain Before You Trust: Risk-Controlled Triage for Automated Vulnerability Detection under Project, Temporal and Dataset Shift}
+\author{Author names to be completed}
+\address{Affiliations to be completed}
+\input{sec_abstract}
+\end{frontmatter}
+
+\input{sec_intro}
+\input{sec_related}
+\input{sec_method}
+\input{sec_design}
+\input{sec_results}
+\input{sec_discussion}
+\input{sec_threats}
+\input{sec_conclusion}
+
+\section*{Data and code availability}
+All code, split definitions, cached detector scores and the scripts that generate every table and figure are in the repository that accompanies this manuscript. Both datasets are public (DiverseVul, Big-Vul) and were obtained from the Hugging Face hub.
+
+\bibliographystyle{elsarticle-harv}
+\bibliography{refs}
+\end{document}

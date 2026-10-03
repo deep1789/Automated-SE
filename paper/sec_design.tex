@@ -1,0 +1,62 @@
+\section{Empirical study design}\label{sec:design}
+
+\subsection{Research questions}
+\begin{description}[leftmargin=2.2em,style=nextline,itemsep=2pt]
+\item[RQ1 (Reliability of detection).] How much does the detection quality of learning-based detectors drop when the evaluation moves from a random split to project-disjoint, temporal and cross-dataset conditions, and is AUROC a faithful predictor of operational value?
+\item[RQ2 (Calibration).] How well-calibrated are the probabilities of these detectors, and how much do post-hoc recalibration methods help under shift?
+\item[RQ3 (Guarantees under shift).] Does the conformal clearance rule keep its miss-rate budget when calibrated on source data, and which remedies (covariate-shift weighting, labelled target recalibration, the PAC variant) restore it? How many labelled target positives are needed?
+\item[RQ4 (Accountability).] Is the guarantee distributed evenly across function sizes and vulnerability classes (CWEs), and does Mondrian calibration repair imbalances? How consistent are the triage decisions and the explanations under semantics-preserving rewrites and across datasets?
+\item[RQ5 (Operational value).] How much reviewer effort does risk-controlled triage save at a valid miss budget, how does it compare with a rule-based static analyser, and what does it imply under an explicit cost model?
+\end{description}
+
+\subsection{Datasets and data-quality audit}
+We use two public C/C++ function-level vulnerability datasets that differ in provenance.
+\textbf{DiverseVul}~\cite{chen2023diversevul} contains functions collected from security-issue websites and the commits that fix them; each record carries the project, the fixing commit and (where available) the CWE.
+\textbf{Big-Vul}~\cite{fan2020bigvul} links CVE records to fixing commits; we use the pre-fix function body as the vulnerable sample, the unchanged functions from the same commits as benign samples, and take the publication year from the CVE identifier as a temporal key.
+Both were obtained from the Hugging Face hub (\texttt{claudios/DiverseVul}, \texttt{bstee615/bigvul}).
+We deliberately did not use the Juliet test suite, whose synthetic flaws make random-split results saturate, nor PrimeVul, which was not retrievable in our environment.
+
+\paragraph{Pre-processing and audit}
+For each function we strip comments, collapse whitespace and hash the result. Within a dataset we remove exact duplicates, and we drop every hash that occurs with conflicting labels. Across datasets we compute the overlap of normalised hashes.
+Table~\ref{tab:data} reports the audit; the consequences for evaluation are discussed in Section~\ref{sec:rq1}.
+
+\input{tables/tab_data}
+
+\subsection{Evaluation scenarios}
+Table~\ref{tab:scen} defines seven scenarios. In every scenario the detector is trained on the \emph{train} part; the \emph{ID calibration} part is a random hold-out of the training distribution (what a practitioner would naturally use); the \emph{test} part is where all reported numbers are measured; and, for the shifted scenarios, a labelled \emph{target pool} drawn from the deployment distribution is available for the recalibration experiments but disjoint from the test part.
+\begin{itemize}[itemsep=1pt]
+\item \textbf{Random} (DV-R, BV-R): 70/15/15 split of deduplicated functions; calibration and test are exchangeable.
+\item \textbf{Project} (DV-P, BV-P): 70\% of projects are used for training and calibration; the remaining projects form the test set (a new codebase is deployed). A random 25\% of the held-out projects' functions is the target pool.
+\item \textbf{Temporal} (BV-T): train and ID calibration on CVEs published up to 2015, target pool = 2016, test = 2017--2019 (a model deployed on newer vulnerabilities).
+\item \textbf{Cross-dataset} (DV$\to$BV, BV$\to$DV): train on 85\% of one dataset, calibrate on the remaining 15\%, test on the other dataset after \emph{removing every test function whose normalised hash occurs in the training data}; a random 25\% of the remaining target data is the pool. Removed (leaked) functions are evaluated separately to measure how much leakage would have inflated the result.
+\end{itemize}
+Each scenario is repeated with three seeds (different partitions and model initialisations).
+
+\input{tables/tab_scen}
+
+\subsection{Detectors}
+Because the experiments must be fully reproducible on commodity CPUs and over 20 scenario--seed pairs, we use four lightweight, widely used detectors rather than fine-tuned pre-trained code models; this choice is a limitation we discuss in Section~\ref{sec:threats}, and the triage layer is detector-agnostic.
+\begin{itemize}[itemsep=1pt]
+\item \textbf{TF-IDF LR} and \textbf{TF-IDF SVM}: unigram+bigram code tokens hashed to $2^{19}$ features, sublinear TF-IDF, logistic regression ($C{=}20$) or linear SVM ($C{=}0.3$).
+\item \textbf{LightGBM}~\cite{ke2017lightgbm}: gradient-boosted trees on 71 engineered code metrics (size, nesting depth, cyclomatic proxy, pointer/cast/bit-operation counts, counts of 32 security-relevant API calls) plus the 20\,000 most frequent hashed tokens; early stopping on 10\% of the training data.
+\item \textbf{LR+LGBM}: sum of standardised LR margin and LightGBM logit.
+\end{itemize}
+Training sets keep all vulnerable functions and at most 150\,000 benign ones; this does not affect the triage layer, which depends on score ranks only.
+The rule-based baseline is \textbf{Flawfinder} 2.0.20, with the highest risk level among a function's hits (then the number of hits) as score.
+
+\subsection{Metrics}
+\textbf{Detection:} AUROC, AUPRC, and F1, MCC, precision, recall at the F1-optimal threshold chosen on ID calibration data.
+\textbf{Calibration:} expected calibration error with 15 equal-mass bins, $\mathrm{ECE}=\sum_b\frac{|B_b|}{n}\lvert\bar y_b-\bar p_b\rvert$, and the Brier score, for raw probabilities, Platt scaling and isotonic regression fitted on ID calibration data.
+\textbf{Triage:} realised miss rate $M$ on test positives against the nominal $\alpha\in\{0.02,0.05,0.10,0.20\}$, the share of cleared functions (SAR, Eq.~\eqref{eq:sar}), the review effort ERE, and the violation frequency $\Pr(M>\alpha+0.02)$ across 200 random calibration draws of 300 positives (60 for the weighted variant); the $2$-point tolerance reflects the sampling error of the test-set miss rate.
+For certified flagging we report the flagged share and the realised precision.
+\textbf{Accountability:} miss rate per length tercile and per CWE.
+\textbf{Robustness:} the share of triage decisions that change after identifier renaming, dead-code insertion, or both, and the miss rate on rewritten inputs.
+\textbf{Explanation:} TreeSHAP~\cite{lundberg2020treeshap} deletion fidelity, rank stability and cross-dataset consistency of feature importances.
+\textbf{Operational:} expected cost~\eqref{eq:cost} with the budget $\alpha^\star$ chosen on calibration data.
+
+\subsection{Statistical protocol}
+Results are reported as means over the three seeds with standard deviations. Detectors are compared with the Friedman test over the 21 scenario--seed blocks; paired comparisons with the best detector use the Wilcoxon signed-rank test and Cliff's $\delta$ as effect size.
+Whether the realised miss rate exceeds its nominal level is tested with a one-sided Wilcoxon test on the per-block differences between realised and nominal miss rate. Relations between quantities (AUROC versus clearable share, KS distance versus excess miss rate) are measured with Spearman's $\rho$. All thresholds, hyper-parameters and splits are fixed before looking at test data; the 2-point tolerance and the budgets $\alpha$ are the only analysis choices and are reported in full.
+
+\subsection{Implementation and availability}
+All code (data preparation, feature extraction, models, triage layer, experiments, figure/table generation and this manuscript) is in the repository accompanying the paper, with a unit test that checks the clearance rule against its $p$-value definition and its finite-sample validity by simulation. Every number in the paper is produced by the scripts from cached detector scores.

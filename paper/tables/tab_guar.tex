@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Conformal clearance at $\alpha{=}10\%$ (LR+LGBM scorer; all figures in \%). ID: calibrated on source data; Wtd: covariate-shift weighted; $k{=}100$: calibrated on 100 labelled target positives; PAC: $k{=}100$ with the high-probability rule ($\delta{=}0.1$) and its violation frequency $\Pr(M>\alpha+2\text{pp})$. A valid rule has miss $\lesssim10$.}\label{tab:guar}
+\resizebox{\linewidth}{!}{\begin{tabular}{lccccccccc}
+\toprule
+Scenario & ID miss & ID SAR & Wtd miss & Wtd SAR & $k{=}100$ miss & $k{=}100$ SAR & PAC miss & PAC SAR & PAC viol. \\
+\midrule
+DV random & 10.1{\scriptsize$\pm$0.6} & 55.1 & -- & -- & -- & -- & -- & -- & -- \\
+BV random & 8.6{\scriptsize$\pm$2.3} & 54.3 & -- & -- & -- & -- & -- & -- & -- \\
+DV project & 23.6{\scriptsize$\pm$3.8} & 56.4 & 15.1 & 41.1 & 9.2 & 31.8 & 5.4 & 22.4 & 2 \\
+BV project & 24.0{\scriptsize$\pm$7.6} & 47.6 & 18.6 & 34.5 & 13.0 & 28.1 & 6.9 & 15.9 & 7 \\
+BV temporal & 21.7{\scriptsize$\pm$2.2} & 50.5 & 22.6 & 51.4 & 9.7 & 28.5 & 6.0 & 20.1 & 0 \\
+DV$\to$BV & 37.0{\scriptsize$\pm$0.3} & 66.1 & 14.9 & 30.2 & 10.1 & 26.7 & 6.1 & 18.2 & 2 \\
+BV$\to$DV & 20.3{\scriptsize$\pm$1.9} & 48.5 & 19.5 & 46.6 & 10.0 & 30.0 & 5.9 & 20.2 & 2 \\
+\bottomrule
+\end{tabular}}
+\end{table}

@@ -1,0 +1,36 @@
+\begin{table}[t]
+\centering\small
+\caption{Detection performance on the held-out test sets (mean $\pm$ s.d.\ over 3 seeds; best per row in bold). MCC uses the F1-optimal threshold chosen on ID calibration data.}\label{tab:detect}
+\begin{tabular}{lcccc}
+\toprule
+Scenario & TF-IDF LR & TF-IDF SVM & LightGBM & LR+LGBM \\
+\midrule
+\multicolumn{5}{l}{\emph{Panel A: AUPRC}} \\
+DV random & 0.229\,{\scriptsize$\pm$0.002} & \textbf{0.248\,{\scriptsize$\pm$0.003}} & 0.231\,{\scriptsize$\pm$0.004} & 0.248\,{\scriptsize$\pm$0.005} \\
+BV random & 0.427\,{\scriptsize$\pm$0.010} & \textbf{0.432\,{\scriptsize$\pm$0.012}} & 0.337\,{\scriptsize$\pm$0.013} & 0.407\,{\scriptsize$\pm$0.015} \\
+DV project & 0.120\,{\scriptsize$\pm$0.015} & 0.126\,{\scriptsize$\pm$0.018} & 0.139\,{\scriptsize$\pm$0.009} & \textbf{0.141\,{\scriptsize$\pm$0.013}} \\
+BV project & 0.142\,{\scriptsize$\pm$0.027} & 0.137\,{\scriptsize$\pm$0.025} & 0.143\,{\scriptsize$\pm$0.040} & \textbf{0.151\,{\scriptsize$\pm$0.037}} \\
+BV temporal & 0.103\,{\scriptsize$\pm$0.001} & 0.102\,{\scriptsize$\pm$0.000} & 0.110\,{\scriptsize$\pm$0.005} & \textbf{0.113\,{\scriptsize$\pm$0.003}} \\
+DV$\to$BV & 0.151\,{\scriptsize$\pm$0.002} & 0.162\,{\scriptsize$\pm$0.001} & 0.163\,{\scriptsize$\pm$0.000} & \textbf{0.171\,{\scriptsize$\pm$0.001}} \\
+BV$\to$DV & 0.137\,{\scriptsize$\pm$0.001} & 0.139\,{\scriptsize$\pm$0.001} & 0.136\,{\scriptsize$\pm$0.002} & \textbf{0.144\,{\scriptsize$\pm$0.002}} \\
+\midrule
+\multicolumn{5}{l}{\emph{Panel B: AUROC}} \\
+DV random & 0.832\,{\scriptsize$\pm$0.001} & 0.832\,{\scriptsize$\pm$0.002} & 0.800\,{\scriptsize$\pm$0.002} & \textbf{0.836\,{\scriptsize$\pm$0.002}} \\
+BV random & \textbf{0.869\,{\scriptsize$\pm$0.013}} & 0.867\,{\scriptsize$\pm$0.012} & 0.830\,{\scriptsize$\pm$0.010} & 0.869\,{\scriptsize$\pm$0.012} \\
+DV project & 0.704\,{\scriptsize$\pm$0.030} & 0.706\,{\scriptsize$\pm$0.033} & \textbf{0.742\,{\scriptsize$\pm$0.022}} & 0.740\,{\scriptsize$\pm$0.026} \\
+BV project & 0.683\,{\scriptsize$\pm$0.012} & 0.674\,{\scriptsize$\pm$0.012} & 0.684\,{\scriptsize$\pm$0.006} & \textbf{0.694\,{\scriptsize$\pm$0.005}} \\
+BV temporal & 0.710\,{\scriptsize$\pm$0.002} & 0.701\,{\scriptsize$\pm$0.001} & 0.710\,{\scriptsize$\pm$0.013} & \textbf{0.722\,{\scriptsize$\pm$0.006}} \\
+DV$\to$BV & 0.679\,{\scriptsize$\pm$0.001} & 0.685\,{\scriptsize$\pm$0.001} & \textbf{0.711\,{\scriptsize$\pm$0.003}} & 0.710\,{\scriptsize$\pm$0.002} \\
+BV$\to$DV & 0.711\,{\scriptsize$\pm$0.001} & 0.704\,{\scriptsize$\pm$0.002} & 0.709\,{\scriptsize$\pm$0.006} & \textbf{0.721\,{\scriptsize$\pm$0.003}} \\
+\midrule
+\multicolumn{5}{l}{\emph{Panel C: MCC}} \\
+DV random & \textbf{0.292\,{\scriptsize$\pm$0.004}} & 0.291\,{\scriptsize$\pm$0.006} & 0.257\,{\scriptsize$\pm$0.002} & 0.288\,{\scriptsize$\pm$0.006} \\
+BV random & \textbf{0.415\,{\scriptsize$\pm$0.013}} & 0.413\,{\scriptsize$\pm$0.018} & 0.319\,{\scriptsize$\pm$0.011} & 0.387\,{\scriptsize$\pm$0.014} \\
+DV project & 0.120\,{\scriptsize$\pm$0.025} & 0.134\,{\scriptsize$\pm$0.024} & 0.163\,{\scriptsize$\pm$0.030} & \textbf{0.165\,{\scriptsize$\pm$0.030}} \\
+BV project & 0.112\,{\scriptsize$\pm$0.032} & 0.109\,{\scriptsize$\pm$0.036} & 0.125\,{\scriptsize$\pm$0.052} & \textbf{0.133\,{\scriptsize$\pm$0.057}} \\
+BV temporal & 0.071\,{\scriptsize$\pm$0.011} & 0.073\,{\scriptsize$\pm$0.008} & 0.119\,{\scriptsize$\pm$0.007} & \textbf{0.121\,{\scriptsize$\pm$0.016}} \\
+DV$\to$BV & 0.150\,{\scriptsize$\pm$0.007} & 0.161\,{\scriptsize$\pm$0.004} & 0.158\,{\scriptsize$\pm$0.005} & \textbf{0.166\,{\scriptsize$\pm$0.002}} \\
+BV$\to$DV & 0.138\,{\scriptsize$\pm$0.002} & 0.146\,{\scriptsize$\pm$0.007} & 0.140\,{\scriptsize$\pm$0.006} & \textbf{0.149\,{\scriptsize$\pm$0.007}} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,29 @@
+{
+  "DiverseVul": {
+    "rows_after_len_filter": 328907,
+    "raw": 328907,
+    "exact_dup_rows_removed": 3025,
+    "label_conflict_hashes": 744,
+    "label_conflict_rows": 1497,
+    "clean": 325138,
+    "vuln": 17689,
+    "vuln_rate": 0.05440459128124058,
+    "projects": 800
+  },
+  "BigVul": {
+    "rows_after_len_filter": 216568,
+    "raw": 216568,
+    "exact_dup_rows_removed": 53373,
+    "label_conflict_hashes": 921,
+    "label_conflict_rows": 2333,
+    "clean": 162274,
+    "vuln": 8055,
+    "vuln_rate": 0.04963826614245043,
+    "projects": 309
+  },
+  "cross_dataset_shared_functions": 69268,
+  "shared_frac_of_bigvul": 0.42685827674180704,
+  "shared_frac_of_diversevul": 0.21304184684656977,
+  "shared_vuln_in_bigvul": 2863,
+  "shared_vuln_in_diversevul": 3346
+}

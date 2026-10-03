@@ -1,0 +1,14 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Interpretable metrics-only LightGBM used for the explanation analysis (3 seeds); cross-dataset rows exclude leaked functions.}\label{tab:explain}
+\begin{tabular}{lcc}
+\toprule
+Train$\to$test & AUROC & AUPRC \\
+\midrule
+DV & 0.749\,{\scriptsize$\pm$0.002} & 0.164\,{\scriptsize$\pm$0.003} \\
+BV & 0.756\,{\scriptsize$\pm$0.009} & 0.207\,{\scriptsize$\pm$0.012} \\
+DV$\to$BV & 0.694\,{\scriptsize$\pm$0.001} & 0.132\,{\scriptsize$\pm$0.002} \\
+BV$\to$DV & 0.710\,{\scriptsize$\pm$0.002} & 0.137\,{\scriptsize$\pm$0.002} \\
+\bottomrule
+\end{tabular}
+\end{table}

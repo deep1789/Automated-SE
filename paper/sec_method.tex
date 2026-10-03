@@ -1,0 +1,151 @@
+\section{Risk-controlled triage: formulation and guarantees}\label{sec:method}
+
+This section formalises the triage layer and states the guarantees that the empirical study (Section~\ref{sec:design}) tests.
+All proofs are short and are given in full so that the assumptions under which each guarantee holds, and therefore the conditions under which it fails, are explicit.
+
+\subsection{Setting and operational quantities}
+Let $X$ be a function (source text) and $Y\in\{0,1\}$ indicate that it is vulnerable, with prevalence $\pi=\Pr(Y=1)$.
+A trained detector yields a real-valued \emph{score} $S=s(X)$, where larger values indicate higher vulnerability likelihood; $s$ may be any monotone proxy of a probability (a logit, a margin, or a calibrated probability).
+For a distribution $P$ over $(X,Y)$ and a threshold $\tau$ we define
+
+\begin{align}
+  M_P(\tau) &= \Pr\nolimits_P\!\left(S\le\tau \mid Y=1\right),\label{eq:miss}\\
+  \mathrm{TNR}_P(\tau) &= \Pr\nolimits_P\!\left(S\le\tau \mid Y=0\right),\\
+  \mathrm{SAR}_P(\tau) &= \Pr\nolimits_P\!\left(S\le\tau\right).\label{eq:sar}
+\end{align}
+Here $M$ is the \emph{miss rate} (the share of vulnerable functions that are auto-cleared), $\mathrm{TNR}$ the share of benign functions that are auto-cleared, and $\mathrm{SAR}$ the \emph{safe automation rate}, the share of all functions that are auto-cleared.
+
+A triage policy with clearance threshold $\tau_c$ and flag threshold $\tau_f\ge\tau_c$ assigns every function to one of three outcomes: \emph{clear} if $S\le\tau_c$, \emph{flag} if $S\ge\tau_f$, and \emph{review} otherwise.
+Only the clear decision removes a function from human attention without evidence, so it is the decision that must carry a safety guarantee; flagging consumes (or, with certification, saves) reviewer time but does not hide vulnerabilities.
+
+\begin{lemma}[Decomposition of automation]\label{lem:sar}
+$\mathrm{SAR}(\tau)=(1-\pi)\,\mathrm{TNR}(\tau)+\pi\,M(\tau)$.
+When nothing is auto-flagged, the expected number of functions a team must review per 1\,000 is $\mathrm{ERE}(\tau)=1000\,\bigl(1-\mathrm{SAR}(\tau)\bigr)$.
+\end{lemma}
+\begin{proof}
+Condition on $Y$ in the law of total probability: $\Pr(S\le\tau)=\Pr(S\le\tau\mid Y{=}0)(1-\pi)+\Pr(S\le\tau\mid Y{=}1)\pi$.
+\end{proof}
+
+Because $\pi\approx 5\%$ in realistic data, Lemma~\ref{lem:sar} shows that automation is driven almost entirely by $\mathrm{TNR}$ at the chosen miss budget $M(\tau)=\alpha$.
+Write $\mathrm{TNR}(\alpha)$ for the true-negative rate at the threshold whose miss rate is $\alpha$ (the ROC curve reflected in $\alpha=1-\mathrm{TPR}$).
+
+\begin{lemma}[AUROC is the average clearance potential]\label{lem:auc}
+If the score distributions are continuous, $\mathrm{AUROC}=\int_0^1 \mathrm{TNR}(\alpha)\,d\alpha$.
+\end{lemma}
+\begin{proof}
+Let $F_1,F_0$ be the score CDFs of vulnerable and benign functions, so $\mathrm{TNR}(\alpha)=F_0(F_1^{-1}(\alpha))$.
+With $U\sim\mathrm{Unif}(0,1)$, $F_1^{-1}(U)$ has the law of a vulnerable score $S_1$; hence $\int_0^1F_0(F_1^{-1}(\alpha))d\alpha=\mathbb E[F_0(S_1)]=\Pr(S_0\le S_1)=\mathrm{AUROC}$ for an independent benign score $S_0$.
+\end{proof}
+
+Lemma~\ref{lem:auc} explains why AUROC is a poor proxy for \emph{operational} value: a safety-relevant budget such as $\alpha=0.05$ uses only the left tail of the integral, and two detectors with equal AUROC can differ widely in $\mathrm{TNR}(0.05)$.
+Section~\ref{sec:rq1} quantifies this.
+
+\subsection{Conformal clearance with a finite-sample miss-rate guarantee}
+Let $s_1,\dots,s_n$ be the scores of $n$ \emph{vulnerable} functions in a held-out calibration set, and define for a new function $x$ with score $s$ the conformal $p$-value
+\begin{equation}
+  p(x)=\frac{1+\#\{i\le n:\ s_i\le s\}}{n+1}.\label{eq:pval}
+\end{equation}
+The policy \emph{clears $x$ iff $p(x)\le\alpha$}. Equivalently, with $s_{(1)}\le\dots\le s_{(n)}$ the order statistics and $k=\lfloor\alpha(n+1)\rfloor$, it clears iff $s<s_{(k)}$ (and clears nothing if $k=0$).
+
+\begin{proposition}[Finite-sample validity]\label{prop:valid}
+If the score $S_{n+1}$ of a vulnerable test function is exchangeable with $s_1,\dots,s_n$, then $\Pr\bigl(p(X_{n+1})\le\alpha\bigr)\le\alpha$ for every $\alpha\in(0,1)$; that is, the expected miss rate of the clearance rule is at most $\alpha$.
+If scores are almost surely distinct the probability is exactly $\lfloor\alpha(n+1)\rfloor/(n+1)\ge\alpha-\tfrac1{n+1}$.
+\end{proposition}
+\begin{proof}
+Let $R=1+\#\{i\le n: s_i\le S_{n+1}\}$ so that $p=R/(n+1)$. $R$ is at least the rank of $S_{n+1}$ among the $n{+}1$ scores under uniformly random tie-breaking, and that rank is uniform on $\{1,\dots,n{+}1\}$ by exchangeability. Hence $\Pr(R\le k)\le k/(n+1)$, and $p\le\alpha\iff R\le\lfloor\alpha(n+1)\rfloor$. With distinct scores $R$ is the rank itself, giving equality.
+\end{proof}
+
+\begin{corollary}[Calibration-set variability and minimum sample size]\label{cor:beta}
+For continuous scores, the \emph{conditional} miss rate given the calibration set, $M(\hat\tau)$, follows $\mathrm{Beta}(k,\,n+1-k)$ with $k=\lfloor\alpha(n+1)\rfloor$.
+Its mean is $k/(n+1)\le\alpha$ and its variance is $\approx\alpha(1-\alpha)/(n+2)$. A non-trivial rule requires $n\ge\lceil1/\alpha\rceil-1$ calibration positives.
+\end{corollary}
+\begin{proof}
+The rule clears $s<s_{(k)}$, so $M(\hat\tau)=F_1(s_{(k)}^-)$, the $k$-th order statistic of $n$ i.i.d.\ Uniform$(0,1)$ variables after the probability integral transform, which is $\mathrm{Beta}(k,n{+}1{-}k)$.
+\end{proof}
+
+Proposition~\ref{prop:valid} is a \emph{marginal} (expected) guarantee: roughly half of independent calibration draws will produce a realised miss rate slightly above $\alpha$ (Corollary~\ref{cor:beta}).
+A practitioner who needs a high-probability statement can use the following variant.
+
+\begin{proposition}[PAC clearance]\label{prop:pac}
+Fix $\delta\in(0,1)$ and let $j^\star=\max\{j:\ F^{-1}_{\mathrm{Beta}(j,\,n+1-j)}(1-\delta)\le\alpha\}$. Clearing iff $s<s_{(j^\star)}$ satisfies $\Pr_{\text{calibration}}\bigl(M(\hat\tau)>\alpha\bigr)\le\delta$ for continuous, exchangeable scores (and clears nothing if no such $j$ exists).
+\end{proposition}
+\begin{proof}
+By Corollary~\ref{cor:beta}, $M(\hat\tau)\sim\mathrm{Beta}(j^\star,n{+}1{-}j^\star)$, and $j^\star$ is chosen so that its $(1-\delta)$ quantile does not exceed $\alpha$.
+\end{proof}
+
+\subsection{What distribution shift does to the guarantee}
+Exchangeability is the only assumption in Proposition~\ref{prop:valid}, and it is exactly what project-level, temporal and cross-dataset evaluation violate.
+Let $F_c$ and $F_t$ be the CDFs of the scores of vulnerable functions under the calibration and test distributions, and $D=\sup_s|F_c(s)-F_t(s)|$ their Kolmogorov--Smirnov distance.
+
+\begin{proposition}[Shift bound]\label{prop:shift}
+For a threshold $\hat\tau$ calibrated at level $\alpha$ under $P_c$ with $n$ positives,
+\[
+\mathbb E\bigl[M_{P_t}(\hat\tau)\bigr]\ \le\ \alpha + D .
+\]
+The bound is attained when $F_t$ lies uniformly $D$ above $F_c$ at the clearance threshold.
+\end{proposition}
+\begin{proof}
+Pointwise $F_t(\tau)\le F_c(\tau)+D$ for every $\tau$, hence $M_{P_t}(\hat\tau)=F_t(\hat\tau^-)\le F_c(\hat\tau^-)+D$. Taking expectations over the calibration draw and applying Proposition~\ref{prop:valid} to the first term gives the claim.
+\end{proof}
+
+Proposition~\ref{prop:shift} is not a repair but a \emph{diagnostic}: the excess miss rate over the nominal budget cannot exceed the KS distance between the positive-class scores before and after the shift. Figure~\ref{fig:ks} tests this bound on every shifted scenario.
+Two remedies are studied.
+
+\paragraph{Covariate-shift weighting}
+If $\Pr_t(Y|x)=\Pr_c(Y|x)$ and $w(x)=dP_t(x)/dP_c(x)$ is known, the likelihood ratio on the positive class is $w(x)\,\pi_c/\pi_t$; the constant cancels after normalisation, so the weighted $p$-value of Tibshirani et al.~\cite{tibshirani2019conformal},
+\begin{equation}
+  p_w(x)=\frac{\sum_{i=1}^n w(x_i)\,\mathbb 1[s_i\le s]+w(x)}{\sum_{i=1}^n w(x_i)+w(x)},
+\end{equation}
+restores validity when computed on the calibration \emph{positives}. We estimate $w$ with a cross-fitted logistic domain classifier on TF-IDF features. The guarantee is only as good as the density-ratio estimate and the covariate-shift assumption, both of which are doubtful for code; we therefore treat it as an empirical question (RQ3).
+
+\paragraph{Recalibration on a small labelled target sample}
+If $k$ labelled vulnerable functions from the \emph{target} distribution (the new project, or the most recent release window) are available, calibrating on them restores exchangeability by construction, and Proposition~\ref{prop:valid} applies verbatim with $n=k$. The price is variance: by Corollary~\ref{cor:beta}, the realised miss rate has standard deviation $\approx\sqrt{\alpha(1-\alpha)/k}$, and the PAC variant (Proposition~\ref{prop:pac}) trades part of the clearance rate for a bounded violation probability.
+
+\subsection{Group-conditional validity (Mondrian calibration)}
+The marginal guarantee averages over all vulnerable functions and can hide very uneven risk across inputs that are observable at inference time.
+Partition the input space by a function $b(x)$ (we use function-length terciles).
+\begin{proposition}[Mondrian validity]\label{prop:mondrian}
+If clearance in group $g$ uses $p$-values computed only from calibration positives with $b=g$, then for every group $g$ with exchangeable calibration and test positives, $\Pr\bigl(p_g(X)\le\alpha\mid Y{=}1, b(X){=}g\bigr)\le\alpha$.
+\end{proposition}
+\begin{proof}
+Condition on $b(X_{n+1})=g$ and on the set of calibration indices in group $g$; scores within the group remain exchangeable, and Proposition~\ref{prop:valid} applies with $n$ replaced by the group's calibration size.
+\end{proof}
+
+\subsection{Certified auto-flagging}
+Flagging with a guarantee on precision is the dual problem, and harder because it is conditioned on the predicted class.
+We use the Learn-then-Test fixed-sequence procedure~\cite{angelopoulos2021ltt}: half of the calibration set fixes a descending grid of thresholds $\lambda_1>\lambda_2>\cdots$; on the other half we test, in order, $H_j:\ \Pr(Y{=}1\mid S\ge\lambda_j)<\beta$ with a one-sided Clopper--Pearson bound at level $\delta$, and stop at the first non-rejection. The last rejected threshold $\hat\lambda$ then satisfies $\Pr\bigl(\Pr(Y{=}1\mid S\ge\hat\lambda)<\beta\bigr)\le\delta$.
+Because precision of vulnerability detectors is low (Section~\ref{sec:rq3}), we expect few or no certifiable flags at practically useful $\beta$; this is itself a finding about what can safely be automated.
+
+\subsection{Choosing the miss budget economically}
+Let one human review cost $1$ and one missed vulnerability cost $c_m$ (in review units). The expected cost per function when clearing at miss budget $\alpha$ is
+\begin{equation}
+  C(\alpha)=\bigl(1-\mathrm{SAR}(\alpha)\bigr)+c_m\,\pi\,\alpha ,\label{eq:cost}
+\end{equation}
+to be compared with $C=1$ for ``review everything'' and $C=c_m\pi$ for ``review nothing''.
+\begin{proposition}[Cost-optimal budget]\label{prop:cost}
+For differentiable $\mathrm{TNR}(\cdot)$, an interior minimiser of~\eqref{eq:cost} satisfies
+\[
+ \mathrm{TNR}'(\alpha^\star)\;=\;\frac{\pi\,(c_m-1)}{1-\pi}.
+\]
+\end{proposition}
+\begin{proof}
+By Lemma~\ref{lem:sar}, $\mathrm{SAR}(\alpha)=(1-\pi)\mathrm{TNR}(\alpha)+\pi\alpha$, so $C'(\alpha)=-(1-\pi)\mathrm{TNR}'(\alpha)-\pi+c_m\pi$; set it to zero.
+\end{proof}
+Since $\mathrm{TNR}'(\alpha)$ is decreasing for concave ROC curves, larger $c_m$ pushes $\alpha^\star$ down; if $\mathrm{TNR}'(\alpha)<\pi(c_m-1)/(1-\pi)$ already at $\alpha\to0$ the optimum is to review everything. Section~\ref{sec:rq5} evaluates $\alpha^\star$ chosen on calibration data against realised cost on the test data.
+
+\subsection{Algorithm}
+Algorithm~\ref{alg:triage} summarises calibration and deployment. The calibration step costs one sort of the positive calibration scores; inference adds one binary search per function.
+
+\begin{algorithm}[t]
+\caption{Risk-controlled triage (calibration and deployment)}\label{alg:triage}
+\begin{algorithmic}[1]
+\Require trained scorer $s(\cdot)$; labelled calibration set $\mathcal D_{\mathrm{cal}}$ \emph{from the deployment distribution}; miss budget $\alpha$; optional PAC level $\delta$; optional group map $b(\cdot)$
+\State $\mathcal S^+\gets\{s(x_i): (x_i,y_i)\in\mathcal D_{\mathrm{cal}},\ y_i=1\}$, sorted; $n\gets|\mathcal S^+|$ (per group if Mondrian)
+\State $k\gets\lfloor\alpha(n+1)\rfloor$ \textbf{or} $k\gets j^\star(n,\alpha,\delta)$ for the PAC variant; \textbf{if} $k=0$ \textbf{then} clear nothing
+\State $\hat\tau\gets s_{(k)}$ (clear iff $s(x)<\hat\tau$)
+\For{each new function $x$}
+  \State \textbf{if} $s(x)<\hat\tau$ \textbf{then} auto-clear \textbf{else} send to review (or auto-flag if $s(x)\ge\hat\lambda$)
+\EndFor
+\State Monitor: on every batch of newly labelled outcomes, re-estimate the miss rate and re-calibrate when it exceeds $\alpha$
+\end{algorithmic}
+\end{algorithm}

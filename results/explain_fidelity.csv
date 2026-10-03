@@ -1,0 +1,67 @@
+ds,k,method,drop
+DiverseVul,0,TreeSHAP (local),0.0
+DiverseVul,0,Random,0.0
+DiverseVul,0,Global gain,0.0
+DiverseVul,1,TreeSHAP (local),0.8063226780972744
+DiverseVul,1,Random,-0.0336014326764172
+DiverseVul,1,Global gain,0.7900659616544112
+DiverseVul,2,TreeSHAP (local),0.9477655889221013
+DiverseVul,2,Random,-0.1222859215140461
+DiverseVul,2,Global gain,0.6279085657351109
+DiverseVul,3,TreeSHAP (local),1.0678692087088169
+DiverseVul,3,Random,-0.15464340416939729
+DiverseVul,3,Global gain,0.6893141329919205
+DiverseVul,4,TreeSHAP (local),1.209761364777598
+DiverseVul,4,Random,-0.24021613692280916
+DiverseVul,4,Global gain,0.4128158781514084
+DiverseVul,5,TreeSHAP (local),1.3016462660881394
+DiverseVul,5,Random,-0.26917729209767033
+DiverseVul,5,Global gain,0.5282684078493721
+DiverseVul,6,TreeSHAP (local),1.4005459181828734
+DiverseVul,6,Random,-0.3073938705801756
+DiverseVul,6,Global gain,0.6333787834888055
+DiverseVul,7,TreeSHAP (local),1.453348798783058
+DiverseVul,7,Random,-0.3881798390163378
+DiverseVul,7,Global gain,0.6921785476134937
+DiverseVul,8,TreeSHAP (local),1.5025498824969221
+DiverseVul,8,Random,-0.43468318590059374
+DiverseVul,8,Global gain,0.7364102297490136
+DiverseVul,9,TreeSHAP (local),1.5689201045921803
+DiverseVul,9,Random,-0.4865029578339453
+DiverseVul,9,Global gain,0.986516506571503
+DiverseVul,10,TreeSHAP (local),1.6333357021259445
+DiverseVul,10,Random,-0.46484600321335734
+DiverseVul,10,Global gain,1.0931487189141293
+BigVul,0,TreeSHAP (local),0.0
+BigVul,0,Random,0.0
+BigVul,0,Global gain,0.0
+BigVul,1,TreeSHAP (local),0.5458609941273871
+BigVul,1,Random,0.018396632769634217
+BigVul,1,Global gain,0.4717945232803119
+BigVul,2,TreeSHAP (local),0.9609013118765947
+BigVul,2,Random,-0.046075248287001526
+BigVul,2,Global gain,0.9175295024896273
+BigVul,3,TreeSHAP (local),1.0710535905720726
+BigVul,3,Random,-0.18047578479161594
+BigVul,3,Global gain,0.4846977269534429
+BigVul,4,TreeSHAP (local),1.0594940354675166
+BigVul,4,Random,-0.13407501046671982
+BigVul,4,Global gain,0.22816524854955714
+BigVul,5,TreeSHAP (local),1.110729944144688
+BigVul,5,Random,-0.177193366171851
+BigVul,5,Global gain,0.19689481288420363
+BigVul,6,TreeSHAP (local),1.1547771542720573
+BigVul,6,Random,-0.19397363671014334
+BigVul,6,Global gain,0.17359621470018552
+BigVul,7,TreeSHAP (local),1.2128405993867337
+BigVul,7,Random,-0.3015480480713467
+BigVul,7,Global gain,0.387199433735515
+BigVul,8,TreeSHAP (local),1.2753536674880535
+BigVul,8,Random,-0.20402431937761578
+BigVul,8,Global gain,0.6377533112043623
+BigVul,9,TreeSHAP (local),1.326972038922434
+BigVul,9,Random,-0.263326135077021
+BigVul,9,Global gain,0.6552671546398003
+BigVul,10,TreeSHAP (local),1.398212159833916
+BigVul,10,Random,-0.3906823395671422
+BigVul,10,Global gain,0.6692359350622833

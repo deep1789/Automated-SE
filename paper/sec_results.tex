@@ -1,0 +1,121 @@
+\section{Results}\label{sec:results}
+
+\subsection{RQ1: Detection quality collapses outside the random split, and AUROC hides what matters}\label{sec:rq1}
+
+\paragraph{Data audit and leakage}
+The audit (Table~\ref{tab:data}) shows that the corpora are less clean than their raw size suggests: 24.6\% of the Big-Vul rows (53\,373) are exact duplicates after normalisation, against 0.9\% for DiverseVul, and 69\,268 normalised functions occur in both corpora, i.e.\ 42.7\% of clean Big-Vul and 21.3\% of clean DiverseVul. In the cross-dataset scenarios, about 44\,000 functions of the evaluated target test part (more than a quarter of Big-Vul, and about 13\% of DiverseVul) also appear in the training data. Figure~\ref{fig:leak} and Table~\ref{tab:leak} show what this does to a naive cross-dataset evaluation: for the LR+LGBM scorer, AUPRC is $0.171$ on leak-free Big-Vul functions but $0.602$ on the leaked ones (3.5$\times$), and $0.144$ vs.\ $0.812$ (5.6$\times$) when training on Big-Vul and testing on DiverseVul. A cross-dataset result that does not remove shared functions would therefore report a performance that is between three and a half and almost six times better than what a new codebase would experience.
+
+\begin{figure}[t]
+\centering\includegraphics[width=.78\linewidth]{figs/fig_leak.pdf}
+\caption{AUPRC on leak-free versus leaked cross-dataset test functions (mean $\pm$ s.d.\ over 3 seeds). The prevalence of vulnerable functions is about 5\%.}\label{fig:leak}
+\end{figure}
+\input{tables/tab_leak}
+
+\paragraph{Performance under shift}
+Table~\ref{tab:detect} and Figure~\ref{fig:detection} give the detection results. On random splits the best scorer reaches AUPRC $0.248$ (DiverseVul) and $0.407$ (Big-Vul), with AUROC $0.836$ and $0.869$. When whole projects are held out, AUPRC falls to $0.141$ (\,$-43\%$) and $0.151$ (\,$-63\%$); the temporal split on Big-Vul yields $0.113$ (\,$-72\%$), and the leak-free cross-dataset settings give $0.171$ and $0.144$. These values are only two to three times the prevalence ($\approx5\%$), and MCC drops to $0.12$--$0.17$ for the best model (Table~\ref{tab:detect}, panel C), against $0.29$ and $0.39$ on random splits. The ID-calibration AUPRC (what a practitioner would see on a hold-out of the training distribution) is $0.24$--$0.43$ in every scenario, so the optimism of in-distribution validation reaches $1.5$--$3.8\times$ for project, temporal and cross-dataset deployment ($0.264$ vs.\ $0.141$ for DiverseVul project, $0.425$ vs.\ $0.113$ for Big-Vul temporal).
+The Friedman test over the 21 scenario--seed blocks rejects equal AUPRC for the four scorers ($\chi^2=21.9$, $p<10^{-4}$); the LR+LGBM scorer has the best mean rank ($1.48$), and beats TF-IDF LR ($p=0.011$, Cliff's $\delta=0.18$) and LightGBM ($p<10^{-5}$, $\delta=0.14$), while the difference to the SVM is borderline ($p=0.055$, $\delta=0.14$). Differences between scorers are small relative to the drop caused by the evaluation setting. We therefore use LR+LGBM as the scorer in the triage experiments unless stated otherwise.
+
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figs/fig_detection.pdf}
+\caption{Detection performance of the four scorers across the seven scenarios (mean $\pm$ s.d.\ over 3 seeds).}\label{fig:detection}
+\end{figure}
+\input{tables/tab_detect}
+
+\paragraph{AUROC is a poor proxy for operational value}
+By Lemma~\ref{lem:auc}, AUROC averages the clearable fraction of benign functions over all miss budgets. A team that wants at most $5\%$ of vulnerabilities cleared by the tool uses only the left tail. Across the 84 scorer--scenario--seed combinations, the Spearman correlation between AUROC and the share of functions that can be cleared at $\alpha=5\%$ is only $\rho=0.38$. Within a scenario, scorers whose mean AUROC differs by $0.02$--$0.04$ differ by $0.04$--$0.13$ in clearable share (e.g.\ DiverseVul random: AUROC range $0.036$, SAR range $0.114$). Model selection for triage must therefore use the operating point of interest, not a global ranking metric.
+
+\subsection{RQ2: Calibration is acceptable in-distribution and degrades under shift}\label{sec:rq2}
+Table~\ref{tab:calib} reports ECE. Raw probabilities are mildly miscalibrated even on random splits (LR: $0.015$--$0.032$; LightGBM: $0.0075$--$0.018$), largely because training keeps at most 150\,000 benign functions. Platt scaling and isotonic regression fitted on ID calibration data reduce ECE to $0.004$--$0.015$ on random splits, but under shift the residual error is much larger: $0.015$--$0.023$ for Big-Vul project, temporal and both cross-dataset settings, i.e.\ $30$--$46\%$ of the 5\% base rate, and the two methods perform alike. The one exception is LightGBM trained on DiverseVul and tested on Big-Vul, where raw probabilities ($0.008$) beat recalibrated ones ($0.018$). Importantly, because the clearance rule depends only on the ranking of scores, post-hoc calibration changes \emph{no} triage decision; calibration matters for reporting probabilities and for cost-based decisions, not for the miss-rate guarantee.
+\input{tables/tab_calib}
+
+\subsection{RQ3: The miss-rate guarantee holds under exchangeability and fails under shift}\label{sec:rq3}
+
+\paragraph{Validity on exchangeable splits}
+Figure~\ref{fig:validity} (left) and Table~\ref{tab:alpha} show that on random splits the realised miss rate matches the nominal budget: at $\alpha=10\%$ it is $10.1\%$ (DiverseVul) and $8.6\%$ (Big-Vul); over all budgets and seeds the excess over $\alpha$ is $-0.4$ percentage points on average (one-sided Wilcoxon $p=0.80$ for ``exceeds''), and the realised-to-nominal ratio is $0.96$. This confirms Proposition~\ref{prop:valid} on real detector scores. At this budget the rule clears $54$--$55\%$ of all functions (SAR; Figure~\ref{fig:sar}), i.e.\ it reduces the number of functions that must be reviewed per 1\,000 from $1000$ to about $450$.
+
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figs/fig_validity.pdf}
+\caption{Realised versus nominal miss rate for source-calibrated conformal clearance (LightGBM scorer; mean $\pm$ s.d.\ over seeds). The dashed line is the target.}\label{fig:validity}
+\end{figure}
+
+\paragraph{Failure under shift}
+In every shifted scenario the guarantee is violated (Figure~\ref{fig:validity}, right). At $\alpha=10\%$ the realised miss rate is $24.0\%$ (Big-Vul project), $23.6\%$ (DiverseVul project), $21.7\%$ (Big-Vul temporal), $20.3\%$ (Big-Vul$\to$DiverseVul) and $37.0\%$ (DiverseVul$\to$Big-Vul), on average $2.7\times$ the budget (excess $+12.8$ points, $p<10^{-11}$). At $\alpha=2\%$ the miss rates are $5.0$--$10.7\%$. Meanwhile the SAR reported for the invalid rule is deceptively high ($47.6$--$66.1\%$, Table~\ref{tab:guar}), so a team calibrating on a convenient hold-out would believe the tool is both safe and efficient.
+Proposition~\ref{prop:shift} bounds the excess by the KS distance between the scores of calibration and test positives; Figure~\ref{fig:ks} shows that all $336$ (scenario, seed, scorer, $\alpha$) points lie below the bound. The excess is strongly related to the shift ($\rho=0.74$). The bound is conservative in typical cases (the KS distance is a median $3.1\times$ the excess, inter-quartile range $1.9$--$6.2$) but nearly tight in the worst one (excess up to $95\%$ of the KS distance), so it is a safe diagnostic, usable only if some labelled target positives exist.
+
+\begin{figure}[t]
+\centering\includegraphics[width=.62\linewidth]{figs/fig_ks_bound.pdf}
+\caption{Excess miss rate over the nominal budget versus the KS distance between calibration and test positive scores, for all scorers, budgets and seeds (336 points). All points lie below the diagonal bound of Proposition~\ref{prop:shift}.}\label{fig:ks}
+\end{figure}
+\input{tables/tab_alpha}
+
+\paragraph{Remedies}
+Table~\ref{tab:guar} and Figure~\ref{fig:recal} compare the remedies at $\alpha=10\%$.
+\emph{Covariate-shift weighting} helps in two scenarios (DiverseVul project: $23.6\to15.1\%$; DiverseVul$\to$Big-Vul: $37.0\to14.9\%$) but not in the other three (Big-Vul project $24.0\to18.6\%$, Big-Vul temporal $21.7\to22.6\%$, Big-Vul$\to$DiverseVul $20.3\to19.5\%$); it never restores the budget. The estimated weights are extremely skewed: the cap of 20 is reached for $22\%$ of the Big-Vul test functions in DiverseVul$\to$Big-Vul and for $15\%$ in Big-Vul project (median test weight $5.5$ and $5.4$ against calibration weights around $0.2$--$0.3$), so a few calibration positives carry most of the weight and the effective calibration size is small; together with a probably violated covariate-shift assumption for code, this explains why weighting is not a reliable repair.
+\emph{Recalibration on labelled target positives} restores the budget: with $k=100$ the realised miss rate is $9.2$--$13.0\%$ across the five shifted scenarios (four of the five scenarios are within $10\%\pm0.8$ points; Big-Vul project is high at $13.0\%$), with a SAR of $26.7$--$31.8\%$; $k=50$ already gives $9.2$--$12.1\%$, and $k=25$ is conservative ($7.3$--$9.6\%$) because the finite-sample correction clears only $\lfloor0.1\cdot26\rfloor=2$ order statistics. The empirical curves fall inside the Beta band predicted by Corollary~\ref{cor:beta}. Because the guarantee is in expectation, the frequency with which a single calibration draw exceeds $\alpha+2$ points is $16$--$68\%$ at $k=100$; the PAC variant (Proposition~\ref{prop:pac}) cuts this to $\le7\%$ in all scenarios (mostly $\le2.3\%$), at the price of a lower SAR ($15.9$--$22.4\%$). The valid operating points under shift thus clear about $27$--$32\%$ of functions (non-PAC) or $16$--$22$\% (PAC), roughly half and a third of the $54$--$55\%$ available on random splits. Importantly, the PAC rule calibrated on \emph{source} data remains invalid under shift ($94$--$100\%$ violations), which confirms that the issue is exchangeability and not the choice of the quantile.
+
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figs/fig_recalibration.pdf}
+\caption{Realised miss rate at $\alpha=10\%$ as a function of the number $k$ of labelled target positives used for calibration (LightGBM scorer; mean over seeds). The shaded area is the 90\% band of Corollary~\ref{cor:beta} for exchangeable data; dashed and dotted lines are the source-calibrated and weighted rules.}\label{fig:recal}
+\end{figure}
+\input{tables/tab_guar}
+
+\begin{figure}[t]
+\centering\includegraphics[width=.62\linewidth]{figs/fig_sar.pdf}
+\caption{Share of functions that can be auto-cleared (SAR) versus nominal budget $\alpha$ for source-calibrated clearance (LR+LGBM). Values for shifted scenarios are \emph{not} valid; see Table~\ref{tab:guar}.}\label{fig:sar}
+\end{figure}
+
+\paragraph{Certified flagging}
+Table~\ref{tab:flag} shows that the opposite decision, flagging with certified precision, offers little. With $\beta=50\%$ the Learn-then-Test procedure certifies a threshold that flags only $0.09\%$ (DiverseVul) and $2.6\%$ (Big-Vul) of the test functions on random splits (realised precision $80\%$ and $57\%$); for $\beta=70\%$ the flagged share is below $0.3\%$. Under shift the certification fails as well: for $\beta=50\%$, realised precision is $27\%$ (Big-Vul project), $19\%$ (Big-Vul temporal) and $23\%$ (Big-Vul$\to$DiverseVul), and the DiverseVul-trained detectors certify nothing. Learned detectors can \emph{clear} some code with a quantifiable risk, but at the precision available today they cannot be used to \emph{confirm} vulnerabilities for more than a few per cent of the code.
+\input{tables/tab_flag}
+
+\subsection{RQ4: Accountability, robustness and explanations}\label{sec:rq4}
+
+\paragraph{The marginal guarantee is very uneven across function sizes}
+Table~\ref{tab:bucket} and Figure~\ref{fig:mondrian} show that, even on exchangeable splits where the marginal guarantee holds, the miss rate at $\alpha=10\%$ is $41.4\%$ for the shortest third of DiverseVul functions and $2.2\%$ for the longest third ($25.8\%$ versus $2.9\%$ in Big-Vul). Short functions that contain vulnerabilities look like the many short benign functions, so most of the budget is consumed there. Length-conditional (Mondrian) calibration (Proposition~\ref{prop:mondrian}) equalises the three groups ($10.8/12.0/9.4\%$ in DiverseVul and $8.0/10.5/8.2\%$ in Big-Vul) at the price of a lower overall SAR ($55.2\to44.2\%$ and $54.2\to45.6\%$). Under shift it narrows the gap (e.g.\ Big-Vul project: $85.8/53.8/10.4\%\to47.3/45.4/18.1\%$) but does not restore validity, as expected, since exchangeability remains violated.
+
+\begin{figure}[t]
+\centering\includegraphics[width=.82\linewidth]{figs/fig_mondrian.pdf}
+\caption{Miss rate per function-length tercile at $\alpha=10\%$ on random splits, marginal versus Mondrian calibration (LR and LightGBM scorers, mean $\pm$ s.d.).}\label{fig:mondrian}
+\end{figure}
+\input{tables/tab_bucket}
+
+\paragraph{Per-CWE disparity}
+Figure~\ref{fig:cwe} reports miss rates per CWE for the classes with at least 15 vulnerable test functions. In DiverseVul, LightGBM misses $17.6\%$ of CWE-416 (use after free), $14.6\%$ of CWE-476 (NULL dereference) and $11.3\%$ of CWE-200, against $7.3\%$ for CWE-119, $6.8\%$ for CWE-125 and $9.1\%$ for CWE-787 (all at a nominal $10\%$); in Big-Vul the range among the most frequent classes is $2.6\%$ (CWE-125) to $14.9\%$ (CWE-264). The budget is therefore met on average but not per vulnerability class; classes that are reported separately (for audits, for example) need their own calibration, which requires sufficient labelled examples per class.
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figs/fig_cwe.pdf}
+\caption{Per-CWE miss rate at $\alpha=10\%$ on random splits (LightGBM, mean over seeds); the dashed line is the nominal budget.}\label{fig:cwe}
+\end{figure}
+
+\paragraph{Decision consistency under semantics-preserving rewrites}
+Table~\ref{tab:robust} and Figure~\ref{fig:robust} show how the clear/review decision changes when functions are rewritten without changing behaviour. Renaming local identifiers flips $10.4\%$ of all decisions on average (and $5.6\%$ of the vulnerable functions) and inserting dead code $6.0\%$ ($2.6\%$); both together flip $13.5\%$ ($6.7\%$). The score ranking is largely preserved (Spearman $\rho=0.88$--$0.997$) and AUROC drops only by about $0.02$, but the miss rate moves from $8.6$--$11.3\%$ (original) to up to $13.5\%$ after renaming (LightGBM, DiverseVul), i.e.\ the nominal guarantee does not survive cosmetic changes to the inputs. Because the triage threshold sits in the dense part of the score distribution, small score changes translate into many decision flips, which matters for accountability: the same code can be cleared or sent to review depending on variable names.
+\begin{figure}[t]
+\centering\includegraphics[width=.8\linewidth]{figs/fig_robust.pdf}
+\caption{Share of clear/review decisions that change after each rewrite (5\,200 test functions per scenario, $\alpha=10\%$).}\label{fig:robust}
+\end{figure}
+\input{tables/tab_robust}
+
+\paragraph{Explanations}
+For the explanation analysis we use an interpretable LightGBM on the 71 named code metrics (Table~\ref{tab:explain}; AUROC $0.75$ on both random splits and $0.69$--$0.71$ on leak-free cross-dataset transfer, below the token-based scorers). TreeSHAP attributions are \emph{faithful} by deletion (Figure~\ref{fig:explain}, left): neutralising the ten highest-attributed features lowers the logit of the 10\% highest-scored functions by $1.63$ (DiverseVul) and $1.40$ (Big-Vul), versus $1.09$ and $0.67$ for the top-ten features by global gain and $-0.46$ and $-0.39$ for random features, so local attributions identify the features that drive the decision better than a global ranking does. They are also \emph{consistent}: the Spearman correlation of global importances is $0.97$ between training seeds and $0.90$ between a model trained on DiverseVul and one trained on Big-Vul. What they reveal is unflattering, however: the most important features are function size (characters, lines, tokens) and the number of parentheses (Figure~\ref{fig:explain}, right), i.e.\ the model largely predicts that longer, more complex functions are vulnerable. This is consistent with the length-dependent miss rate above and with the known confound that functions touched by security fixes tend to be larger. As a check on identifier shortcuts in the token model, we compared the 200 highest positive-weight lexical features of the DiverseVul logistic regression with frequency-matched random features: the former occur in a median of $11$ projects versus $13.5$ for the controls ($6\%$ versus $3\%$ occur in at most five projects), i.e.\ we do not find that the highest-weighted tokens are markedly more project-specific.
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figs/fig_explain.pdf}
+\caption{Explanation analysis for the metrics-only LightGBM. Left and centre: deletion fidelity (mean logit drop when the top-$k$ features of each function are neutralised). Right: mean $|$SHAP$|$ of the eight most important features.}\label{fig:explain}
+\end{figure}
+\input{tables/tab_explain}
+
+\subsection{RQ5: Operational value}\label{sec:rq5}
+
+\paragraph{Comparison with a rule-based analyser}
+Flawfinder reports at least one hit for only $4.7$--$17.5\%$ of the functions and its scores barely rank the vulnerable functions (AUROC $0.535$--$0.611$, Table~\ref{tab:flaw}). Its only conservative policy, clearing functions without hits, auto-clears $82.5$--$95.3\%$ of the code but misses $62.9$--$89.8\%$ of the vulnerabilities. At the same clearance share the learned scorer misses $49.6$--$81.3\%$, and for the same (high) miss rate it could clear $84.7$--$98.8\%$ (Figure~\ref{fig:flaw}). Neither is useful as an unattended filter at those operating points; the contrast is that the learned scorer provides a whole curve from which a budget such as $10\%$ can be chosen and certified, whereas Flawfinder provides a single, uncontrolled point.
+\begin{figure}[t]
+\centering\includegraphics[width=\linewidth]{figs/fig_flaw.pdf}
+\caption{Miss rate versus share of functions cleared for the learned scorer (curve) and Flawfinder (square; ``no hit $=$ clear''). Dashed: $10\%$ budget; dotted: random clearing.}\label{fig:flaw}
+\end{figure}
+\input{tables/tab_flaw}
+
+\paragraph{Economic view}
+Table~\ref{tab:cost} and Figure~\ref{fig:cost} apply the cost model of Eq.~\eqref{eq:cost} with $\alpha^\star$ chosen on ID calibration data. On random splits and for a missed vulnerability that costs $50$ reviews, the optimal budget is $\alpha^\star=0.07$--$0.09$, the rule clears $48$--$53\%$ of the code, and expected cost is $0.68$--$0.73$ of reviewing everything. Under project, temporal and cross-dataset shift the same procedure yields costs of $0.95$--$1.27$, i.e.\ no saving or a loss, because the miss rate it believes to have ($\approx\alpha^\star$) is far from the realised one. For $c_m=10$, triage appears to save $46$--$69\%$ of the cost but misses $35$--$75\%$ of the vulnerabilities, and for $c_m=200$ the saving is only $4$--$6\%$ on random splits and negative under shift; for $c_m=1000$ ``review everything'' is optimal in all scenarios. In short: delegation pays when a miss is worth tens, not hundreds, of reviews, and only if the miss rate is calibrated on the deployment distribution.
+\begin{figure}[t]
+\centering\includegraphics[width=.62\linewidth]{figs/fig_cost.pdf}
+\caption{Expected cost per function relative to reviewing everything as a function of the cost ratio $c_m$ (LR+LGBM, $\alpha^\star$ selected on ID calibration data).}\label{fig:cost}
+\end{figure}
+\input{tables/tab_cost}

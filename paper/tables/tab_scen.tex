@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Evaluation scenarios (seed 0 sizes; training keeps all vulnerable and at most 150\,000 benign functions).}\label{tab:scen}
+\resizebox{\linewidth}{!}{\begin{tabular}{llrrrrr}
+\toprule
+Scenario & Shift & Train & ID cal. & Target pool & Test & Test pos. \\
+\midrule
+DV random & random 70/15/15 & 162,475 & 48,879 & -- & 48,553 & 2,637 \\
+BV random & random 70/15/15 & 113,482 & 24,489 & -- & 24,303 & 1,254 \\
+DV project & held-out projects (30\%) & 159,829 & 30,432 & 31,053 & 91,423 & 4,522 \\
+BV project & held-out projects (30\%) & 124,551 & 22,227 & 3,826 & 11,670 & 699 \\
+BV temporal & train $\le$2015; test 2017--19 & 60,101 & 10,850 & 27,022 & 52,669 & 2,288 \\
+DV$\to$BV & train DV, test BV (leak-free) & 165,052 & 48,553 & 25,869 & 77,380 & 4,240 \\
+BV$\to$DV & train BV, test DV (leak-free) & 137,971 & 24,303 & 66,735 & 199,348 & 11,207 \\
+\bottomrule
+\end{tabular}}
+\end{table}
