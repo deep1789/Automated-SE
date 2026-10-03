@@ -8,22 +8,25 @@ ORDER = ["DV-R", "BV-R", "DV-P", "BV-P", "BV-T", "DV2BV", "BV2DV"]
 dn, tn = pd.read_csv("results/cbn_detection.csv"), pd.read_csv("results/cbn_triage.csv"); dr, tr_ = pd.read_csv("results/cb_detection.csv"), pd.read_csv("results/cb_triage.csv")
 COLS = [("fmt_gb", dn, tn, "Format-only"), ("tf_ens", dn, tn, "TF-IDF+LGBM"), ("cb_ens", dr, tr_, "CodeBERT (raw text)"), ("cb_ens", dn, tn, "CodeBERT (normalised)"), ("all_ens", dn, tn, "TF-IDF+CodeBERT (norm.)")]
 CLR = ["#999999", "#0072B2", "#E69F00", "#D55E00", "#009E73"]
+HAS_FT = (dn.model == "ft_cb").any()
+if HAS_FT: COLS.append(("ft_cb", dn, tn, "CodeBERT (fine-tuned)")); CLR.append("#CC79A7")
+NC = len(COLS)
 def val(d, m, s, col): return d[(d.model == m) & (d.scenario == s)][col].mean()
 def tex(cols, rows, cap, lab, spec):
     s = "\\begin{table}[t]\n\\centering\\footnotesize\n\\caption{" + cap + "}\\label{" + lab + "}\n\\resizebox{\\linewidth}{!}{\\begin{tabular}{" + spec + "}\n\\toprule\n" + " & ".join(cols) + " \\\\\n\\midrule\n"
     for r in rows: s += (r + "\n") if isinstance(r, str) else (" & ".join(r) + " \\\\\n")
     return s + "\\bottomrule\n\\end{tabular}}\n\\end{table}\n"
-short = ["Fmt", "TF-IDF", "CB raw", "CB norm", "TF+CB"]
+short = ["Fmt", "TF-IDF", "CB raw", "CB norm", "TF+CB"] + (["CB FT"] if HAS_FT else [])
 rows = []
 for s in ORDER:
-    best = {c: max(range(5), key=lambda i: val(COLS[i][1], COLS[i][0], s, c)) for c in ("auroc", "auprc")}
+    
     r = [SCN[s]]
     for c in ("auroc", "auprc"):
         for i, (m, d, t, _) in enumerate(COLS):
             v = f"{val(d, m, s, c):.3f}"; r.append(v)
     rows.append(r)
 open("paper/tables/tab_cb_detect.tex", "w").write(tex(["Scenario"] + [f"AUROC {x}" for x in short] + [f"AUPRC {x}" for x in short], rows,
-    "Detection with frozen CodeBERT embeddings on the stratified subsample (mean over 3 seeds; AUPRC weighted to the true prevalence). Fmt: formatting-only classifier; CB raw / norm: CodeBERT on raw text / on comment-and-whitespace-normalised text; ensembles are standardised score sums.", "tab:cbdetect", "l" + "c" * 10))
+    "Detection with frozen CodeBERT embeddings on the stratified subsample (mean over 3 seeds; AUPRC weighted to the true prevalence). Fmt: formatting-only classifier; CB raw / norm: CodeBERT on raw text / on comment-and-whitespace-normalised text; ensembles are standardised score sums.", "tab:cbdetect", "l" + "c" * (2 * NC)))
 def tri(m, d, s, reg, col, a=0.10): return d[(d.model == m) & (d.scenario == s) & (d.regime == reg) & (d.alpha == a)][col].mean()
 rows = []
 for s in ORDER:
@@ -32,25 +35,25 @@ for s in ORDER:
     rows.append(r)
 rows.append("\\midrule")
 sh = [s for s in ORDER if s not in ("DV-R", "BV-R")]
-rows.append(["Mean, random"] + [f"{100 * np.mean([tri(m, t, s, 'ID-all', 'miss') for s in ('DV-R', 'BV-R')]):.1f}" for m, d, t, _ in COLS] + [""] * 5)
+rows.append(["Mean, random"] + [f"{100 * np.mean([tri(m, t, s, 'ID-all', 'miss') for s in ('DV-R', 'BV-R')]):.1f}" for m, d, t, _ in COLS] + [""] * NC)
 rows.append(["Mean, shifted"] + [f"{100 * np.mean([tri(m, t, s, 'ID-all', 'miss') for s in sh]):.1f}" for m, d, t, _ in COLS] + [f"{100 * np.mean([tri(m, t, s, 'Target-100', 'sar') for s in sh]):.1f}" for m, d, t, _ in COLS])
 open("paper/tables/tab_cb_triage.tex", "w").write(tex(["Scenario"] + [f"miss {x}" for x in short] + [f"SAR {x}" for x in short], rows,
-    "Triage with CodeBERT scorers at $\\alpha{=}10\\%$ (\\%). Left: realised miss rate when calibrated on source (ID) data; right: safe automation rate when calibrated on 100 labelled target positives (valid by Prop.~\\ref{prop:valid}). Subsample experiment; see Table~\\ref{tab:cbdetect} for column keys.", "tab:cbtriage", "l" + "c" * 10))
+    "Triage with CodeBERT scorers at $\\alpha{=}10\\%$ (\\%). Left: realised miss rate when calibrated on source (ID) data; right: safe automation rate when calibrated on 100 labelled target positives (valid by Prop.~\\ref{prop:valid}). Subsample experiment; see Table~\\ref{tab:cbdetect} for column keys.", "tab:cbtriage", "l" + "c" * (2 * NC)))
 # ---- figure
 fig, axs = plt.subplots(1, 2, figsize=(7.4, 2.8), sharex=True)
-w = 0.16
+w = 0.8 / NC
 for j, (m, d, t, lab) in enumerate(COLS):
-    axs[0].bar(np.arange(7) + (j - 2) * w, [val(d, m, s, "auroc") for s in ORDER], w, color=CLR[j], label=lab)
-    axs[1].bar(np.arange(7) + (j - 2) * w, [100 * tri(m, t, s, "ID-all", "miss") for s in ORDER], w, color=CLR[j])
+    axs[0].bar(np.arange(7) + (j - (NC - 1) / 2) * w, [val(d, m, s, "auroc") for s in ORDER], w, color=CLR[j], label=lab)
+    axs[1].bar(np.arange(7) + (j - (NC - 1) / 2) * w, [100 * tri(m, t, s, "ID-all", "miss") for s in ORDER], w, color=CLR[j])
 axs[0].set_ylim(.5, 1); axs[0].set_ylabel("AUROC"); axs[1].axhline(10, color="k", ls="--", lw=.8); axs[1].set_ylabel("realised miss rate (%) at $\\alpha{=}10\\%$")
 for a in axs: a.set_xticks(range(7)); a.set_xticklabels([SCN[s].replace("$\\to$", "→") for s in ORDER], rotation=35, ha="right")
-h, l = axs[0].get_legend_handles_labels(); fig.legend(h, l, ncol=5, fontsize=6.5, loc="lower center", bbox_to_anchor=(0.5, -0.09)); axs[0].set_title("Detection (raw text exploits the Big-Vul artifact)"); axs[1].set_title("Source-calibrated triage")
+h, l = axs[0].get_legend_handles_labels(); fig.legend(h, l, ncol=min(NC, 6), fontsize=6.5, loc="lower center", bbox_to_anchor=(0.5, -0.09)); axs[0].set_title("Detection (raw text exploits the Big-Vul artifact)"); axs[1].set_title("Source-calibrated triage")
 fig.tight_layout(); fig.savefig("paper/figs/fig_cb.pdf"); fig.savefig("paper/figs/fig_cb.png", dpi=200)
 # ---- numbers for the text
 import json
 ks = tn[(tn.regime == "ID-all") & tn.ks.notna()]; kr = tr_[(tr_.regime == "ID-all") & tr_.ks.notna()]
 o = dict(ks_viol_norm=int(((ks.miss - ks.alpha) > ks.ks).sum()), ks_n_norm=len(ks), ks_viol_raw=int(((kr.miss - kr.alpha) > kr.ks).sum()), ks_n_raw=len(kr))
-for nm, m, t in (("tf", "tf_ens", tn), ("cbn", "cb_ens", tn), ("cbr", "cb_ens", tr_), ("all", "all_ens", tn), ("fmt", "fmt_gb", tn)):
+for nm, m, t in list((("ft", "ft_cb", tn),) if HAS_FT else ()) + [("tf", "tf_ens", tn), ("cbn", "cb_ens", tn), ("cbr", "cb_ens", tr_), ("all", "all_ens", tn), ("fmt", "fmt_gb", tn)]:
     a = t[(t.model == m) & (t.alpha == .1) & (t.regime == "ID-all")]
     o[nm] = dict(random=float(a[a.scenario.isin(["DV-R", "BV-R"])].miss.mean()), shift=float(a[~a.scenario.isin(["DV-R", "BV-R"])].miss.mean()),
                  t100_miss=float(t[(t.model == m) & (t.alpha == .1) & (t.regime == "Target-100")].miss.mean()), pac_viol=float(t[(t.model == m) & (t.alpha == .1) & (t.regime == "TargetPAC-100")].viol2.mean()))

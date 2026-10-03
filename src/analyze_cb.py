@@ -1,6 +1,6 @@
 """Detection and triage analysis for the CodeBERT experiment (negatives subsampled -> weighted AUPRC; SAR via true prevalence)."""
-import glob, sys, numpy as np, pandas as pd
-MODE = sys.argv[1] if len(sys.argv) > 1 else "norm"; CACHE = "results/cb_cache" if MODE == "raw" else "results/cbn_cache"; OUT = "results/cb_" if MODE == "raw" else "results/cbn_"
+import glob, sys, os, numpy as np, pandas as pd
+MODE = sys.argv[1] if len(sys.argv) > 1 else "norm"; CACHE = os.environ.get("CB_CACHE") or ("results/cb_cache" if MODE == "raw" else "results/cbn_cache"); OUT = "results/cb_" if MODE == "raw" else "results/cbn_"
 from sklearn.metrics import roc_auc_score, average_precision_score
 from scipy.stats import ks_2samp
 from triage import threshold_for_alpha
@@ -14,12 +14,13 @@ def add_scores(P):
     for d in P.values():
         d["cb_gb"] = lg(d.cb_gb.values); d["tf_gb"] = lg(d.tf_gb.values)
         if "fmt_gb" in d: d["fmt_gb"] = lg(d.fmt_gb.values)
-    c = P["cal_id"]; mu = {m: (c[m].mean(), c[m].std()) for m in RAW}
+    c = P["cal_id"]; mu = {m: (c[m].mean(), c[m].std()) for m in RAW + (["ft_cb"] if "ft_cb" in c else [])}
     for d in P.values():
         z = lambda m: (d[m] - mu[m][0]) / mu[m][1]
         d["cb_ens"] = z("cb_lr") + z("cb_gb"); d["tf_ens"] = z("tf_lr") + z("tf_gb"); d["all_ens"] = z("cb_lr") + z("cb_gb") + z("tf_lr") + z("tf_gb")
+        if "ft_cb" in d: d["ft_tf_ens"] = z("ft_cb") + z("tf_lr") + z("tf_gb")
     return P
-MODELS = RAW + ["cb_ens", "tf_ens", "all_ens"] + (["fmt_gb"] if MODE == "norm" else [])
+MODELS = RAW + ["cb_ens", "tf_ens", "all_ens"] + (["fmt_gb"] if MODE == "norm" else []) + ["ft_cb", "ft_tf_ens"]
 det, tri = [], []
 for sc in ["DV-R", "BV-R", "DV-P", "BV-P", "BV-T", "DV2BV", "BV2DV"]:
     for seed in range(3):
@@ -27,7 +28,7 @@ for sc in ["DV-R", "BV-R", "DV-P", "BV-P", "BV-T", "DV2BV", "BV2DV"]:
         if not fs: continue
         P = {f.split(f"_s{seed}_")[1][:-8]: pd.read_parquet(f) for f in fs}; P = add_scores(P)
         cal, te = P["cal_id"], P["test"]; yc, yt = cal.y.values, te.y.values; pi = PREV[TARGET_DS[sc]]
-        for m in MODELS:
+        for m in [m for m in MODELS if m in cal.columns]:
             sc_c, sc_t = cal[m].values, te[m].values
             det.append(dict(scenario=sc, seed=seed, model=m, auroc=roc_auc_score(yt, sc_t), auprc=average_precision_score(yt, sc_t, sample_weight=te.w.values),
                             id_auprc=average_precision_score(yc, sc_c, sample_weight=cal.w.values), n_pos=int(yt.sum())))
