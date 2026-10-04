@@ -9,3 +9,5 @@ paper/*.bbl
 paper/*.blg
 paper/*.fls
 paper/*.fdb_latexmk
+paper/docx_build/manuscript_raw.docx
+paper/docx_build/manuscript.tex
