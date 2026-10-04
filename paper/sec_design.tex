@@ -38,7 +38,7 @@ Each scenario is repeated with three seeds (different partitions and model initi
 \input{tables/tab_scen}
 
 \subsection{Detectors}
-Because the experiments must be fully reproducible on commodity CPUs and over 20 scenario--seed pairs, we use four lightweight, widely used detectors on the full corpora, complemented by CodeBERT experiments (frozen and fine-tuned) on a subsample (Section~\ref{sec:design_cb}); the absence of fine-tuned code models is a limitation discussed in Section~\ref{sec:threats}, and the triage layer is detector-agnostic.
+Because the main experiments cover more than 40 scenario--seed pairs and must be reproducible on commodity CPUs, we use four lightweight, widely used detectors on the full corpora. They are complemented by CodeBERT experiments on a 30\,000-function subsample: frozen embeddings (CPU) and end-to-end fine-tuning (one GPU, one or two seeds; Section~\ref{sec:design_cb}). Larger code models and large language models were not evaluated, which is a limitation discussed in Section~\ref{sec:threats}; the triage layer itself is detector-agnostic.
 \begin{itemize}[itemsep=1pt]
 \item \textbf{TF-IDF LR} and \textbf{TF-IDF SVM}: unigram+bigram code tokens hashed to $2^{19}$ features, sublinear TF-IDF, logistic regression ($C{=}20$) or linear SVM ($C{=}0.3$).
 \item \textbf{LightGBM}~\cite{ke2017lightgbm}: gradient-boosted trees on 71 engineered code metrics (size, nesting depth, cyclomatic proxy, pointer/cast/bit-operation counts, counts of 32 security-relevant API calls) plus the 20\,000 most frequent hashed tokens; early stopping on 10\% of the training data.
