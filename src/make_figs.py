@@ -30,7 +30,7 @@ fig.tight_layout(); save(fig, "fig_detection")
 # ---- F4: realised miss rate vs nominal alpha (marginal guarantee), ID calibration
 t = tri[(tri.regime == "ID")]
 fig, axs = plt.subplots(1, 2, figsize=(7.2, 2.9))
-mdl = "lgbm"
+mdl = "ens"
 for ax_, ms, ttl in zip(axs, [["DV-R", "BV-R"], [s for s in ["DV-P", "BV-P", "BV-T", "DV2BV", "BV2DV"] if s in sc_present]], ["Exchangeable splits (guarantee should hold)", "Shifted splits"]):
     ax_.plot([0, .22], [0, .22], "k--", lw=.8, label="nominal $\\alpha$")
     for i, s in enumerate(ms):
@@ -74,7 +74,7 @@ ax.set_xlabel("target miss rate $\\alpha$"); ax.set_ylabel("share of functions a
 fig.tight_layout(); save(fig, "fig_sar")
 
 # ---- F8: Mondrian
-b = buck[(buck.alpha == .10) & buck.scenario.isin(["DV-R", "BV-R"]) & (buck.model.isin(["lr", "lgbm"]))]
+b = buck[(buck.alpha == .10) & buck.scenario.isin(["DV-R", "BV-R"]) & (buck.model.isin(["ens"]))]
 fig, axs = plt.subplots(1, 2, figsize=(5.6, 2.5), sharey=True)
 for ax_, s in zip(axs, ["DV-R", "BV-R"]):
     for j, (meth, col) in enumerate((("marginal", "#999"), ("mondrian", C["lgbm"]))):

@@ -44,5 +44,4 @@ DBLP and ACM Digital Library could not be reached from the working environment, 
 | feng2020codebert | confirmed | Findings of EMNLP 2020, pp. 1536–1547 |
 
 Entries that still need a human check before submission: **chen2023diversevul** (venue/pages), and any reference the journal's
-style requires volume/page data for (omitted above where unconfirmed). The reference list in the manuscript is generated from
-`paper/refs.bib` with the Elsevier Harvard CSL style; it should be re-checked once after the authors finalise the file.
+style requires volume/page data for (omitted above where unconfirmed). The reference list is generated from `paper/refs.bib`: with `elsarticle-harv` in the LaTeX version and with the Elsevier Harvard CSL style in the Word version. Re-check it once after the authors finalise the file. (The earlier intermediate file `refs_verified.bib` has been removed; `refs.bib` is the only bibliography.) Peng et al. (arXiv 2607.01842, uncertainty quantification in defect prediction) appears in the novelty notes but is deliberately not cited because it was not verified.

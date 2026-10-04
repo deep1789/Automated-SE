@@ -96,13 +96,13 @@ If $\Pr_t(Y|x)=\Pr_c(Y|x)$ and $w(x)=dP_t(x)/dP_c(x)$ is known, the likelihood r
 \begin{equation}
   p_w(x)=\frac{\sum_{i=1}^n w(x_i)\,\mathbb 1[s_i\le s]+w(x)}{\sum_{i=1}^n w(x_i)+w(x)},
 \end{equation}
-restores validity when computed on the calibration \emph{positives}. We estimate $w$ with a cross-fitted logistic domain classifier on TF-IDF features. The guarantee is only as good as the density-ratio estimate and the covariate-shift assumption, both of which are doubtful for code; we therefore treat it as an empirical question (RQ3).
+restores validity when computed on the calibration \emph{positives}. We estimate $w$ with a cross-fitted logistic domain classifier on TF-IDF features, with weights clipped to $[0.05,20]$. The guarantee is only as good as the density-ratio estimate and the covariate-shift assumption, both of which are doubtful for code; we therefore treat it as an empirical question (RQ3).
 
 \paragraph{Recalibration on a small labelled target sample}
 If $k$ labelled vulnerable functions from the \emph{target} distribution (the new project, or the most recent release window) are available, calibrating on them restores exchangeability by construction, and Proposition~\ref{prop:valid} applies verbatim with $n=k$. The price is variance: by Corollary~\ref{cor:beta}, the realised miss rate has standard deviation $\approx\sqrt{\alpha(1-\alpha)/k}$, and the PAC variant (Proposition~\ref{prop:pac}) trades part of the clearance rate for a bounded violation probability.
 
 \subsection{Online risk control under drift}\label{sec:online}
-Recalibration on a labelled target sample (Section above) is a one-off remedy. In deployment the distribution keeps moving (new releases, new projects) and labels arrive over time: a vulnerable function that was cleared may be discovered later (an incident, a disclosure, an audit of the cleared pool). We therefore also consider a stream of functions processed in batches $b=1,2,\dots$ with \emph{delayed feedback}: the labels of batch $b$ become known after the batch has been decided.
+Recalibration on a labelled target sample (previous subsection) is a one-off remedy. In deployment the distribution keeps moving (new releases, new projects) and labels arrive over time: a vulnerable function that was cleared may be discovered later (an incident, a disclosure, an audit of the cleared pool). We therefore also consider a stream of functions processed in batches $b=1,2,\dots$ with \emph{delayed feedback}: the labels of batch $b$ become known after the batch has been decided.
 
 Adaptive conformal inference (ACI)~\cite{gibbs2021adaptive} turns the miss budget into a control variable. Let $\alpha_1=\alpha$ and, for batch $b$, clear iff $s<s^{\mathrm{ref}}_{(k_b)}$ with $k_b=\lfloor\alpha_b(n+1)\rfloor$ computed on a reference set of $n$ vulnerable scores (the source calibration positives, or the most recent $W$ observed vulnerable functions); the rule clears nothing if $\alpha_b\le0$ and everything if $\alpha_b\ge1$. After the batch, for each vulnerable function $i$ of the batch in turn, with $e_i=1$ if it was cleared and $0$ otherwise,
 \begin{equation}

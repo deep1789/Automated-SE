@@ -60,7 +60,7 @@ w("tab_detect", tab(["Scenario"] + [MN[m] for m in MODELS], rows, "Detection per
 # ---------------- leakage
 rows = []
 for s in [x for x in ("DV2BV", "BV2DV") if x in SC]:
-    for m in ("lr", "lgbm"):
+    for m in ("lr", "lgbm", "ens"):
         g = det[(det.scenario == s) & (det.model == m)]
         rows.append([SCN[s], MN[m], f"{int(g.n_leaky.mean()):,}", pm(g.test_auprc), pm(g.leaky_auprc), pm(g.test_auroc), pm(g.leaky_auroc)])
 w("tab_leak", tab(["Scenario", "Model", "Leaked $n$", "AUPRC clean", "AUPRC leaked", "AUROC clean", "AUROC leaked"], rows,

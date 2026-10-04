@@ -7,8 +7,10 @@ Scenario & Model & Leaked $n$ & AUPRC clean & AUPRC leaked & AUROC clean & AUROC
 \midrule
 DV$\to$BV & TF-IDF LR & 44,180 & 0.151\,{\scriptsize$\pm$0.002} & 0.708\,{\scriptsize$\pm$0.010} & 0.679\,{\scriptsize$\pm$0.001} & 0.984\,{\scriptsize$\pm$0.002} \\
 DV$\to$BV & LightGBM & 44,180 & 0.163\,{\scriptsize$\pm$0.000} & 0.392\,{\scriptsize$\pm$0.040} & 0.711\,{\scriptsize$\pm$0.003} & 0.877\,{\scriptsize$\pm$0.009} \\
+DV$\to$BV & LR+LGBM & 44,180 & 0.171\,{\scriptsize$\pm$0.001} & 0.602\,{\scriptsize$\pm$0.026} & 0.710\,{\scriptsize$\pm$0.002} & 0.969\,{\scriptsize$\pm$0.002} \\
 BV$\to$DV & TF-IDF LR & 44,120 & 0.137\,{\scriptsize$\pm$0.001} & 0.862\,{\scriptsize$\pm$0.005} & 0.711\,{\scriptsize$\pm$0.001} & 0.951\,{\scriptsize$\pm$0.003} \\
 BV$\to$DV & LightGBM & 44,120 & 0.136\,{\scriptsize$\pm$0.002} & 0.679\,{\scriptsize$\pm$0.027} & 0.709\,{\scriptsize$\pm$0.006} & 0.909\,{\scriptsize$\pm$0.007} \\
+BV$\to$DV & LR+LGBM & 44,120 & 0.144\,{\scriptsize$\pm$0.002} & 0.812\,{\scriptsize$\pm$0.007} & 0.721\,{\scriptsize$\pm$0.003} & 0.948\,{\scriptsize$\pm$0.002} \\
 \bottomrule
 \end{tabular}}
 \end{table}
