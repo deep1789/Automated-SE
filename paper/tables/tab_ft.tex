@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering\footnotesize
+\caption{Fine-tuned CodeBERT on normalised text compared with the other scorers on exactly the same (scenario, seed) pairs (seed 0 for all scenarios, seed 1 additionally for BV-R, BV-P, BV-T and DV-R; the other models in Tables~\ref{tab:cbdetect} and~\ref{tab:cbtriage} use three seeds). AUROC, AUPRC (weighted to true prevalence) and realised miss rate (\%) of source-calibrated clearance at $\alpha{=}10\%$.}\label{tab:ft}
+\resizebox{\linewidth}{!}{\begin{tabular}{lcccccccccccccc}
+\toprule
+Scenario & Seeds & AUROC TF-IDF+LGBM & AUROC CB frozen & AUROC CB fine-tuned & AUROC TF+CB-FT & AUPRC TF-IDF+LGBM & AUPRC CB frozen & AUPRC CB fine-tuned & AUPRC TF+CB-FT & miss TF-IDF+LGBM & miss CB frozen & miss CB fine-tuned & miss TF+CB-FT \\
+\midrule
+DV random & 2 & 0.787 & 0.754 & 0.747 & 0.787 & 0.200 & 0.169 & 0.163 & 0.202 & 8.9 & 9.4 & 10.4 & 9.2 \\
+BV random & 2 & 0.827 & 0.780 & 0.789 & 0.833 & 0.250 & 0.181 & 0.208 & 0.266 & 9.5 & 9.4 & 11.5 & 10.6 \\
+DV project & 1 & 0.716 & 0.702 & 0.692 & 0.722 & 0.136 & 0.134 & 0.118 & 0.140 & 14.3 & 13.3 & 18.5 & 14.6 \\
+BV project & 2 & 0.693 & 0.687 & 0.689 & 0.708 & 0.134 & 0.135 & 0.129 & 0.140 & 11.7 & 13.6 & 10.2 & 10.6 \\
+BV temporal & 2 & 0.728 & 0.720 & 0.723 & 0.739 & 0.115 & 0.117 & 0.115 & 0.123 & 14.4 & 11.0 & 11.0 & 13.4 \\
+DV$\to$BV & 1 & 0.699 & 0.689 & 0.691 & 0.711 & 0.150 & 0.139 & 0.130 & 0.155 & 29.3 & 26.0 & 20.7 & 27.0 \\
+BV$\to$DV & 1 & 0.712 & 0.711 & 0.696 & 0.720 & 0.146 & 0.135 & 0.128 & 0.149 & 18.0 & 13.5 & 14.7 & 18.9 \\
+\bottomrule
+\end{tabular}}
+\end{table}

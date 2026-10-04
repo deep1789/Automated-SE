@@ -8,7 +8,7 @@ ORDER = ["DV-R", "BV-R", "DV-P", "BV-P", "BV-T", "DV2BV", "BV2DV"]
 dn, tn = pd.read_csv("results/cbn_detection.csv"), pd.read_csv("results/cbn_triage.csv"); dr, tr_ = pd.read_csv("results/cb_detection.csv"), pd.read_csv("results/cb_triage.csv")
 COLS = [("fmt_gb", dn, tn, "Format-only"), ("tf_ens", dn, tn, "TF-IDF+LGBM"), ("cb_ens", dr, tr_, "CodeBERT (raw text)"), ("cb_ens", dn, tn, "CodeBERT (normalised)"), ("all_ens", dn, tn, "TF-IDF+CodeBERT (norm.)")]
 CLR = ["#999999", "#0072B2", "#E69F00", "#D55E00", "#009E73"]
-HAS_FT = (dn.model == "ft_cb").any()
+HAS_FT_ANY = (dn.model == "ft_cb").any(); HAS_FT = False   # main tables keep 3 seeds for all models; fine-tuned results get a matched-seed table below
 if HAS_FT: COLS.append(("ft_cb", dn, tn, "CodeBERT (fine-tuned)")); CLR.append("#CC79A7")
 NC = len(COLS)
 def val(d, m, s, col): return d[(d.model == m) & (d.scenario == s)][col].mean()
@@ -68,3 +68,28 @@ for ds, nm in (("BigVul", "Big-Vul"), ("DiverseVul", "DiverseVul")):
     rows.append([nm, f"{d['auroc']:.3f}", f"{d['auprc_weighted']:.3f}", f("trailing_ws_lines"), f("starts_with_ws"), f("comment_markers", 1), f"{c['all']['auroc']:.3f} / {c['drop_chars_lines_tokens']['auroc']:.3f}"])
 open("paper/tables/tab_format.tex", "w").write(tex(["Dataset", "AUROC", "AUPRC", "Trailing-ws lines (\\%)", "Starts with ws (\\%)", "Comment markers", "Main LGBM AUROC"], rows,
     "Formatting-shortcut audit on the stratified subsample (random 70/30 split). First two columns: LightGBM on 15 formatting features of the raw text only (indentation, trailing whitespace, comment markers, line lengths; AUPRC weighted to true prevalence). Next three: mean per function, vulnerable / benign. Last: AUROC of the main-study LightGBM with all metrics / with size-sensitive metrics (chars, lines, tokens) removed (seed 0).", "tab:format", "lcccccc"))
+
+# ---- matched-seed table for the fine-tuned model
+if HAS_FT_ANY:
+    f = dn[dn.model == "ft_cb"]; keys = set(zip(f.scenario, f.seed))
+    sel = lambda d: d[[(s, sd) in keys for s, sd in zip(d.scenario, d.seed)]]
+    dm, tm = sel(dn), sel(tn)
+    MODS = [("tf_ens", "TF-IDF+LGBM"), ("cb_ens", "CB frozen"), ("ft_cb", "CB fine-tuned"), ("ft_tf_ens", "TF+CB-FT")]
+    rows = []
+    for s in ORDER:
+        ns = len({sd for sc_, sd in keys if sc_ == s})
+        r = [SCN[s], str(ns)]
+        r += [f"{dm[(dm.model == m) & (dm.scenario == s)].auroc.mean():.3f}" for m, _ in MODS]
+        r += [f"{dm[(dm.model == m) & (dm.scenario == s)].auprc.mean():.3f}" for m, _ in MODS]
+        r += [f"{100 * tm[(tm.model == m) & (tm.scenario == s) & (tm.regime == 'ID-all') & (tm.alpha == .1)].miss.mean():.1f}" for m, _ in MODS]
+        rows.append(r)
+    hdr = ["Scenario", "Seeds"] + [f"AUROC {n}" for _, n in MODS] + [f"AUPRC {n}" for _, n in MODS] + [f"miss {n}" for _, n in MODS]
+    open("paper/tables/tab_ft.tex", "w").write(tex(hdr, rows, "Fine-tuned CodeBERT on normalised text compared with the other scorers on exactly the same (scenario, seed) pairs (seed 0 for all scenarios, seed 1 additionally for BV-R, BV-P, BV-T and DV-R; the other models in Tables~\\ref{tab:cbdetect} and~\\ref{tab:cbtriage} use three seeds). AUROC, AUPRC (weighted to true prevalence) and realised miss rate (\\%) of source-calibrated clearance at $\\alpha{=}10\\%$.", "tab:ft", "l" + "c" * 14))
+    a = tm[(tm.alpha == .1) & (tm.regime == "ID-all")]; o = {}
+    for m, _ in MODS:
+        x = a[a.model == m]; o[m] = dict(random=float(x[x.scenario.isin(["DV-R", "BV-R"])].miss.mean()), shift=float(x[~x.scenario.isin(["DV-R", "BV-R"])].miss.mean()))
+    for m in ("tf_ens", "cb_ens", "ft_cb"):
+        b = tm[(tm.alpha == .1) & (tm.model == m)]
+        o[m]["t100_miss"] = [float(b[(b.regime == "Target-100")].miss.min()), float(b[b.regime == "Target-100"].miss.max())]
+    k = tm[(tm.regime == "ID-all") & tm.ks.notna() & (tm.model == "ft_cb")]; o["ks"] = [int(((k.miss - k.alpha) > k.ks).sum()), len(k)]
+    json.dump(o, open("results/ft_summary.json", "w"), indent=1); print(json.dumps(o, indent=1))
