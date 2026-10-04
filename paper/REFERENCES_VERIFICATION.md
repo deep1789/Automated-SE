@@ -16,7 +16,7 @@ DBLP and ACM Digital Library could not be reached from the working environment, 
 | gibbs2021adaptive | confirmed | NeurIPS 34, 2021 (proceedings.neurips.cc); pages not confirmed, omitted |
 | luo2022sample | confirmed | WAFR 2022, pp. 149–169 (arXiv 2109.14082) |
 | barbero2022transcendent | confirmed | IEEE S&P 2022 (arXiv 2010.03856) |
-| chen2023diversevul | confirmed (paper); venue per authors' record RAID 2023 | arXiv 2304.00409; venue/pages not independently confirmed from the proceedings page – **please check before submission** |
+| chen2023diversevul | confirmed | arXiv 2304.00409 (arXiv page: "Published at RAID 2023"; authors' publication page); page range not confirmed, omitted |
 | fan2020bigvul | confirmed | MSR 2020, pp. 508–512, doi 10.1145/3379597.3387501 |
 | ding2024primevul | confirmed | ICSE 2025 (arXiv 2403.18624); key says 2024, entry year 2025 |
 | croft2023data | confirmed | ICSE 2023 (arXiv 2301.05456, conf.researchr.org); pages omitted |
@@ -43,5 +43,5 @@ DBLP and ACM Digital Library could not be reached from the working environment, 
 | yefet2020adversarial | confirmed | PACMPL 4(OOPSLA), article 162 |
 | feng2020codebert | confirmed | Findings of EMNLP 2020, pp. 1536–1547 |
 
-Entries that still need a human check before submission: **chen2023diversevul** (venue/pages), and any reference the journal's
+Entries that still need a human check before submission: any reference the journal's
 style requires volume/page data for (omitted above where unconfirmed). The reference list is generated from `paper/refs.bib`: with `elsarticle-harv` in the LaTeX version and with the Elsevier Harvard CSL style in the Word version. Re-check it once after the authors finalise the file. (The earlier intermediate file `refs_verified.bib` has been removed; `refs.bib` is the only bibliography.) Peng et al. (arXiv 2607.01842, uncertainty quantification in defect prediction) appears in the novelty notes but is deliberately not cited because it was not verified.
