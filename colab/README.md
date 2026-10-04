@@ -50,3 +50,8 @@ Revoke the token when you are done.
 * Never commit a GitHub token; if the repository is private, paste a read-only fine-grained token in the configuration cell, or upload `bundle.zip`.
 * Different GPUs/library versions change fine-tuned scores slightly; report the GPU, `torch`/`transformers` versions and seeds in the paper.
 * `--max-len 512` (A100/L4) changes the experiment (fewer truncated functions); if used, say so and rerun nothing else.
+
+## Troubleshooting
+* `can't open file '/content/colab/finetune_codebert.py'` – the notebook is not in the repository folder (the session was restarted). Run `%cd /content/Automated-SE` first (the run cells now do this).
+* `CUDA available: False` after `pip install ... torch ... --index-url ...` – do not reinstall PyTorch on Colab. Use *Runtime → Disconnect and delete runtime*, reconnect to a GPU and re-run from the top; finished scenarios on Drive are kept and skipped.
+* Getting seed-0 scores to the repository without a token: in the repository on GitHub switch to branch `colab-results` (or create it), *Add file → Upload files*, drop the `*.parquet` and `*_done.json` files into `colab_results/`, commit.
